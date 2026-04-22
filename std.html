@@ -41,8 +41,8 @@
             
             <form id="login-form" class="space-y-4 relative z-10">
                 <div>
-                    <label for="username" class="form-label">ชื่อผู้ใช้งาน (Username)</label>
-                    <input type="text" id="username" required class="form-input text-center text-lg" placeholder="กรอกชื่อผู้ใช้งาน">
+                    <label for="username" class="form-label">รหัสนักเรียน</label>
+                    <input type="text" id="username" required class="form-input text-center text-lg" placeholder="กรอกรหัสนักเรียน">
                 </div>
                 <div>
                     <label for="password" class="form-label">รหัสผ่าน (Password)</label>
@@ -68,7 +68,7 @@
                 <h1 class="text-2xl sm:text-3xl font-bold relative z-10 leading-tight">แบบฟอร์มข้อมูลพื้นฐานนักเรียน</h1>
                 <p class="text-blue-100 mt-2 text-sm sm:text-base relative z-10">กรุณากรอกข้อมูลให้ครบถ้วนและเป็นความจริง</p>
                 <div class="absolute right-5 sm:right-8 top-1/2 transform -translate-y-1/2 bg-white/20 px-3 py-1 sm:px-4 sm:py-2 rounded-lg backdrop-blur-sm hidden md:block">
-                    ผู้ใช้งาน: <span id="display-student-id" class="font-bold"></span>
+                    ผู้ใช้งาน: <span id="display-student-name" class="font-bold"></span>
                 </div>
             </div>
 
@@ -275,7 +275,7 @@
         const btnLogin = document.getElementById('btn-login');
         const loginText = document.getElementById('login-text');
         const loginSpinner = document.getElementById('login-spinner');
-        const displayStudentId = document.getElementById('display-student-id');
+        const displayStudentName = document.getElementById('display-student-name');
         const btnLogout = document.getElementById('btn-logout');
         
         // Modal Elements
@@ -289,7 +289,7 @@
         let currentStudentId = '';
 
         // 1. นำ URL ที่ได้จาก Google Apps Script (Web App) มาวางในเครื่องหมายคำพูดด้านล่างนี้
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyZu4Z8y7nKZzTO2XM2BHexCKojEvuYPRUUwqz4mQrcwX-2vHPIgPh4BYIUQpda-7wE/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzDeFq8FQsU0iRMFI3ZlYkXYe1YigKwmvLz_5kX0lvDBfEevdZjFCzU-RvuKS6jwjeI/exec';
 
         // Authentication Helper
         async function authenticate() {
@@ -369,7 +369,13 @@
 
                     if (result.success) {
                         currentStudentId = uname;
-                        displayStudentId.textContent = uname;
+                        
+                        // จัดการแสดงชื่อผู้ใช้งานบนแถบด้านบน
+                        let displayName = uname;
+                        if (result.data && result.data.firstName) {
+                            displayName = `${uname} - ${result.data.prefix || ''}${result.data.firstName} ${result.data.lastName || ''}`;
+                        }
+                        displayStudentName.textContent = displayName;
                         
                         // นำข้อมูลที่ดึงมาใส่ลงในฟอร์ม (ถ้ามี)
                         if (result.data) {
