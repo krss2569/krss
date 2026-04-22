@@ -289,7 +289,7 @@
         let currentStudentId = '';
 
         // 1. นำ URL ที่ได้จาก Google Apps Script (Web App) มาวางในเครื่องหมายคำพูดด้านล่างนี้
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzDeFq8FQsU0iRMFI3ZlYkXYe1YigKwmvLz_5kX0lvDBfEevdZjFCzU-RvuKS6jwjeI/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbx9KpM_qZhqZP_xbLFznpGZC47QIIz_8jAr-fZz3kypDsMmfxNQDB1C2LiFF6MaqTv4/exec';
 
         // Authentication Helper
         async function authenticate() {
@@ -515,7 +515,7 @@
                 const result = await response.json();
 
                 if(result.success) {
-                    showModal('success', 'บันทึกข้อมูลสำเร็จ', 'ข้อมูลของคุณถูกบันทึกลง Google Sheet เรียบร้อยแล้ว', () => {
+                    showModal('success', 'สำเร็จ', result.message || 'ข้อมูลถูกบันทึกเรียบร้อยแล้ว', () => {
                         btnLogout.click(); 
                     });
                 } else {
