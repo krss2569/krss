@@ -76,10 +76,10 @@
             <form id="data-form" class="p-5 sm:p-8">
                 
                 <!-- Section 1: Personal Info -->
-                <h3 class="form-section-title">ข้อมูลส่วนตัว</h3>
+                <h3 class="form-section-title">1. ข้อมูลส่วนตัว</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label for="prefix" class="form-label">คำนำหน้า <span class="text-red-500">*</span></label>
+                        <label for="prefix" class="form-label">1. คำนำหน้า <span class="text-red-500">*</span></label>
                         <select id="prefix" required class="form-input bg-white">
                             <option value="">เลือกคำนำหน้า</option>
                             <option value="เด็กชาย">เด็กชาย</option>
@@ -89,25 +89,25 @@
                         </select>
                     </div>
                     <div>
-                        <label for="fname" class="form-label">ชื่อ <span class="text-red-500">*</span></label>
+                        <label for="fname" class="form-label">2. ชื่อ <span class="text-red-500">*</span></label>
                         <input type="text" id="fname" required class="form-input" placeholder="ไม่ต้องใส่คำนำหน้า">
                     </div>
                     <div>
-                        <label for="lname" class="form-label">นามสกุล <span class="text-red-500">*</span></label>
+                        <label for="lname" class="form-label">3. นามสกุล <span class="text-red-500">*</span></label>
                         <input type="text" id="lname" required class="form-input">
                     </div>
                     <div>
-                        <label for="dob" class="form-label">วัน/เดือน/ปีเกิด <span class="text-red-500">*</span></label>
+                        <label for="dob" class="form-label">4. วัน/เดือน/ปีเกิด <span class="text-red-500">*</span></label>
                         <input type="date" id="dob" required class="form-input">
                     </div>
                     <div>
-                        <label for="student-phone" class="form-label">เบอร์โทรศัพท์นักเรียน</label>
+                        <label for="student-phone" class="form-label">6. เบอร์โทรศัพท์นักเรียน</label>
                         <input type="tel" id="student-phone" class="form-input" placeholder="08xxxxxxxx">
                     </div>
                 </div>
 
                 <!-- Section 2: Address -->
-                <h3 class="form-section-title">ที่อยู่ปัจจุบัน</h3>
+                <h3 class="form-section-title">2. ที่อยู่ปัจจุบัน (ข้อ 5)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label for="addr-house-no" class="form-label">บ้านเลขที่ <span class="text-red-500">*</span></label>
@@ -136,14 +136,14 @@
                 </div>
 
                 <!-- Section 3: Family Info -->
-                <h3 class="form-section-title">ข้อมูลครอบครัว</h3>
+                <h3 class="form-section-title">3. ข้อมูลครอบครัว</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="parent-name" class="form-label">ชื่อ-นามสกุล ผู้ปกครอง <span class="text-red-500">*</span></label>
+                        <label for="parent-name" class="form-label">7. ชื่อ-นามสกุล ผู้ปกครอง <span class="text-red-500">*</span></label>
                         <input type="text" id="parent-name" required class="form-input">
                     </div>
                     <div>
-                        <label for="parent-relation" class="form-label">เกี่ยวข้องเป็น <span class="text-red-500">*</span></label>
+                        <label for="parent-relation" class="form-label">8. เกี่ยวข้องเป็น <span class="text-red-500">*</span></label>
                         <select id="parent-relation" required class="form-input bg-white">
                             <option value="">เลือกความสัมพันธ์</option>
                             <option value="บิดา">พ่อ</option>
@@ -156,11 +156,11 @@
                         </select>
                     </div>
                     <div>
-                        <label for="parent-phone" class="form-label">เบอร์โทรผู้ปกครอง <span class="text-red-500">*</span></label>
+                        <label for="parent-phone" class="form-label">9. เบอร์โทรผู้ปกครอง <span class="text-red-500">*</span></label>
                         <input type="tel" id="parent-phone" required class="form-input" placeholder="08xxxxxxxx">
                     </div>
                     <div>
-                        <label for="family-status" class="form-label">สถานะครอบครัว <span class="text-red-500">*</span></label>
+                        <label for="family-status" class="form-label">10. สถานะครอบครัว <span class="text-red-500">*</span></label>
                         <select id="family-status" required class="form-input bg-white">
                             <option value="">เลือกสถานะ</option>
                             <option value="พ่อแม่อยู่ด้วยกัน">พ่อแม่อยู่ด้วยกัน</option>
@@ -170,20 +170,20 @@
                         </select>
                     </div>
                     <div>
-                        <label for="family-income" class="form-label">รายได้ของครอบครัว/เดือน (บาท)</label>
+                        <label for="family-income" class="form-label">11. รายได้ของครอบครัว/เดือน (บาท)</label>
                         <input type="number" id="family-income" class="form-input" placeholder="ระบุตัวเลข">
                     </div>
                 </div>
 
                 <!-- Section 4: School Info & Others -->
-                <h3 class="form-section-title">ข้อมูลการเรียนและความสามารถ</h3>
+                <h3 class="form-section-title">4. ข้อมูลการเรียนและความสามารถ</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="daily-allowance" class="form-label">ได้เงินมาโรงเรียนวันละ (บาท)</label>
+                        <label for="daily-allowance" class="form-label">12. ได้เงินมาโรงเรียนวันละ (บาท)</label>
                         <input type="number" id="daily-allowance" class="form-input" placeholder="ระบุตัวเลข">
                     </div>
                     <div>
-                        <label for="transportation" class="form-label">มาโรงเรียนอย่างไร <span class="text-red-500">*</span></label>
+                        <label for="transportation" class="form-label">13. มาโรงเรียนอย่างไร <span class="text-red-500">*</span></label>
                         <select id="transportation" required class="form-input bg-white">
                             <option value="">เลือกวิธีการเดินทาง</option>
                             <option value="เดิน">เดิน</option>
@@ -195,15 +195,15 @@
                         </select>
                     </div>
                     <div>
-                        <label for="distance" class="form-label">ระยะทางจากบ้านถึงโรงเรียน (กิโลเมตร)</label>
+                        <label for="distance" class="form-label">14. ระยะทางจากบ้านถึงโรงเรียน (กิโลเมตร)</label>
                         <input type="number" id="distance" step="0.1" class="form-input" placeholder="ตัวอย่าง: 5.5">
                     </div>
                     <div class="md:col-span-2">
-                        <label for="special-talents" class="form-label">ความสามารถพิเศษ (เช่น ดนตรี กีฬา เทคโนโลยี)</label>
+                        <label for="special-talents" class="form-label">15. ความสามารถพิเศษ (เช่น ดนตรี กีฬา เทคโนโลยี)</label>
                         <textarea id="special-talents" rows="2" class="form-input"></textarea>
                     </div>
                     <div class="md:col-span-2">
-                        <label for="expectations" class="form-label">ความคาดหวังของนักเรียนเมื่อเรียนจบ</label>
+                        <label for="expectations" class="form-label">16. ความคาดหวังของนักเรียนเมื่อเรียนจบ</label>
                         <textarea id="expectations" rows="3" class="form-input"></textarea>
                     </div>
                 </div>
@@ -289,7 +289,7 @@
         let currentStudentId = '';
 
         // 1. นำ URL ที่ได้จาก Google Apps Script (Web App) มาวางในเครื่องหมายคำพูดด้านล่างนี้
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxREFJHfd-rI3AjX_WbVK6QUR-9WX8cJnYbV4NCdd4bGHxyRtg2SSEVwHUjo2hfu9A/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyZu4Z8y7nKZzTO2XM2BHexCKojEvuYPRUUwqz4mQrcwX-2vHPIgPh4BYIUQpda-7wE/exec';
 
         // Authentication Helper
         async function authenticate() {
@@ -370,6 +370,50 @@
                     if (result.success) {
                         currentStudentId = uname;
                         displayStudentId.textContent = uname;
+                        
+                        // นำข้อมูลที่ดึงมาใส่ลงในฟอร์ม (ถ้ามี)
+                        if (result.data) {
+                            document.getElementById('prefix').value = result.data.prefix || '';
+                            document.getElementById('fname').value = result.data.firstName || '';
+                            document.getElementById('lname').value = result.data.lastName || '';
+                            
+                            // จัดการรูปแบบวันที่ให้รองรับ YYYY-MM-DD เพื่อแสดงใน input type="date"
+                            let dob = result.data.dateOfBirth || '';
+                            if (dob) {
+                                if (dob.includes('/')) {
+                                    let parts = dob.split('/');
+                                    let year = parseInt(parts[2]);
+                                    if (year > 2500) year -= 543; // แปลงพ.ศ. เป็น ค.ศ.
+                                    dob = `${year}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                } else if (dob.includes('-')) {
+                                    let parts = dob.split('-');
+                                    let year = parseInt(parts[0]);
+                                    if (year > 2500) {
+                                       year -= 543;
+                                       dob = `${year}-${parts[1]}-${parts[2]}`;
+                                    }
+                                }
+                                document.getElementById('dob').value = dob;
+                            }
+
+                            document.getElementById('addr-house-no').value = result.data.houseNo || '';
+                            document.getElementById('addr-moo').value = result.data.moo || '';
+                            document.getElementById('addr-subdistrict').value = result.data.subdistrict || '';
+                            document.getElementById('addr-district').value = result.data.district || '';
+                            document.getElementById('addr-province').value = result.data.province || '';
+                            document.getElementById('addr-zip').value = result.data.zip || '';
+                            document.getElementById('student-phone').value = result.data.studentPhone || '';
+                            document.getElementById('parent-name').value = result.data.parentName || '';
+                            document.getElementById('parent-relation').value = result.data.parentRelation || '';
+                            document.getElementById('parent-phone').value = result.data.parentPhone || '';
+                            document.getElementById('family-status').value = result.data.familyStatus || '';
+                            document.getElementById('family-income').value = result.data.familyIncome || '';
+                            document.getElementById('daily-allowance').value = result.data.dailyAllowance || '';
+                            document.getElementById('transportation').value = result.data.transportation || '';
+                            document.getElementById('distance').value = result.data.distance || '';
+                            document.getElementById('special-talents').value = result.data.specialTalents || '';
+                            document.getElementById('expectations').value = result.data.expectations || '';
+                        }
                         
                         // Transition screens
                         loginScreen.classList.add('opacity-0');
