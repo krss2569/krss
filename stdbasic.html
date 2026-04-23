@@ -630,12 +630,29 @@
             }
         }
 
-        // ฟังก์ชันนำข้อมูลมาใส่ในฟอร์ม
+        // ฟังก์ชันนำข้อมูลมาใส่ในฟอร์ม (ปรับปรุงระบบวันที่ให้รองรับ Input type=date)
         function populateForm(data) {
             Object.keys(data).forEach(key => {
                 const element = document.getElementById(key);
                 if(element && key !== 'profilePic') {
-                    element.value = data[key];
+                    // จัดการค่าของช่องวันเกิดโดยเฉพาะ ให้ตรงกับรูปแบบ YYYY-MM-DD
+                    if(key === 'dob' && data[key]) {
+                        try {
+                            let dateObj = new Date(data[key]);
+                            if (!isNaN(dateObj.getTime())) {
+                                let year = dateObj.getFullYear();
+                                let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                                let day = String(dateObj.getDate()).padStart(2, '0');
+                                element.value = `${year}-${month}-${day}`;
+                            } else {
+                                element.value = data[key];
+                            }
+                        } catch(e) {
+                            element.value = data[key];
+                        }
+                    } else {
+                        element.value = data[key];
+                    }
                 }
             });
             
