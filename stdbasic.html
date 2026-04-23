@@ -368,7 +368,7 @@
         let currentProfileBase64 = ''; // เพิ่มตัวแปรเก็บรูปภาพ
         let userMasterData = null; // เพิ่มตัวแปรเพื่อเก็บข้อมูลตั้งต้นจากตาราง Users
 
-        // ฟังก์ชันเข้าสู่ระบบ (อัปเดตเพื่อตรวจสอบกับ Google Sheet พร้อมดึงข้อมูลผู้ใช้)
+        // ฟังก์ชันเข้าสู่ระบบ
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const user = document.getElementById('username').value.trim();
@@ -382,10 +382,9 @@
             if(!GAS_URL) {
                 setTimeout(() => {
                     hideLoader();
-                    if(user === pass) { // จำลองโหมดทดสอบ ให้กรอกรหัสผ่านเดียวกับรหัสผู้ใช้งาน
+                    if(user === pass) { // จำลองโหมดทดสอบ
                         currentStudentId = user;
                         
-                        // จำลองข้อมูล Master จาก Users
                         userMasterData = { prefix: 'ด.ช.', firstName: 'สมมติ', lastName: 'ทดสอบระบบ' };
                         
                         document.getElementById('prefix').value = userMasterData.prefix;
@@ -404,7 +403,6 @@
                 return;
             }
 
-            // ถ้ามี GAS_URL ให้ส่งไปตรวจสอบที่ Google Sheet
             try {
                 let formData = new URLSearchParams();
                 formData.append('action', 'login');
@@ -422,7 +420,6 @@
                 if(result.status === 'success') {
                     currentStudentId = user;
 
-                    // บันทึกข้อมูลตั้งต้นจาก Sheet Users ไว้ในตัวแปร userMasterData
                     if (result.userData) {
                         userMasterData = result.userData;
                         document.getElementById('prefix').value = userMasterData.prefix || '';
@@ -437,7 +434,6 @@
                     document.getElementById('login-page').classList.remove('active');
                     document.getElementById('dashboard-page').classList.add('active');
                     
-                    // เมื่อล็อกอินผ่าน ให้ดึงข้อมูลประวัติเดิมมาแสดงด้วย
                     fetchData(currentStudentId);
                 } else {
                     Swal.fire('การเข้าสู่ระบบล้มเหลว', 'รหัสประจำตัวหรือรหัสผ่านไม่ถูกต้อง', 'error');
@@ -454,7 +450,6 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            // ตรวจสอบขนาดไฟล์ (ไม่เกิน 2MB)
             if (file.size > 2 * 1024 * 1024) {
                 Swal.fire('ขนาดไฟล์ใหญ่เกินไป', 'กรุณาอัปโหลดรูปภาพขนาดไม่เกิน 2MB', 'warning');
                 e.target.value = '';
@@ -469,7 +464,6 @@
             reader.readAsDataURL(file);
         });
 
-        // ฟังก์ชันออกจากระบบ
         function logout() {
             Swal.fire({
                 title: 'ยืนยันการออกจากระบบ?',
@@ -482,8 +476,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     currentStudentId = '';
-                    currentProfileBase64 = ''; // เคลียร์รูปภาพ
-                    userMasterData = null; // เคลียร์ข้อมูลหลัก
+                    currentProfileBase64 = ''; 
+                    userMasterData = null; 
                     document.getElementById('profilePreview').src = 'https://ui-avatars.com/api/?name=Student&background=random&size=150';
                     document.getElementById('studentForm').reset();
                     document.getElementById('username').value = '';
@@ -497,11 +491,9 @@
             });
         }
 
-        // ฟังก์ชันดึงข้อมูลจาก Google Sheet
         async function fetchData(studentId) {
             showLoader();
             
-            // กรณีที่ยังไม่ได้เชื่อมต่อ Google Sheet (จำลองข้อมูล)
             if(!GAS_URL) {
                 setTimeout(() => {
                     hideLoader();
@@ -516,7 +508,6 @@
             }
 
             try {
-                // ส่ง Request แบบ GET หรือ POST ไปยัง GAS (ในตัวอย่างใช้ POST แบบ urlencoded เพื่อป้องกัน CORS)
                 let formData = new URLSearchParams();
                 formData.append('action', 'getData');
                 formData.append('studentId', studentId);
@@ -528,9 +519,8 @@
                 
                 const result = await response.json();
                 if(result.status === 'success' && result.data) {
-                    populateForm(result.data); // ดึงข้อมูลเต็มมาเขียนทับ
+                    populateForm(result.data); 
                     
-                    // อัปเดตแถบ Navbar อีกรอบ โดยดึงค่าจาก Field โดยตรงเพื่อให้สัมพันธ์กันเสมอ
                     let dFName = document.getElementById('firstName').value || '';
                     let dLName = document.getElementById('lastName').value || '';
                     document.getElementById('display-user-id').innerText = `ผู้ใช้งาน: ${currentStudentId} ${dFName} ${dLName}`.trim();
@@ -546,16 +536,20 @@
             }
         }
 
-        // ฟังก์ชันบันทึกข้อมูลไปยัง Google Sheet
         async function saveData() {
-            // ตรวจสอบความถูกต้องของแบบฟอร์มเบื้องต้น
             const form = document.getElementById('studentForm');
             if(!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
 
-            // รวบรวมข้อมูล
+            // รวบรวมข้อมูล โดยบังคับใส่ Single Quote (') ให้เบอร์โทร เพื่อแก้ปัญหา 0 ด้านหน้าหายตอนบันทึกลง Sheet
+            let sPhone = document.getElementById('studentPhone').value.trim();
+            let pPhone = document.getElementById('parentPhone').value.trim();
+            
+            if(sPhone.startsWith('0')) sPhone = "'" + sPhone;
+            if(pPhone.startsWith('0')) pPhone = "'" + pPhone;
+
             const studentData = {
                 studentId: currentStudentId,
                 profilePic: currentProfileBase64,
@@ -569,10 +563,10 @@
                 addressDist: document.getElementById('addressDist').value,
                 addressProv: document.getElementById('addressProv').value,
                 addressZip: document.getElementById('addressZip').value,
-                studentPhone: document.getElementById('studentPhone').value,
+                studentPhone: sPhone,
                 parentName: document.getElementById('parentName').value,
                 parentRelation: document.getElementById('parentRelation').value,
-                parentPhone: document.getElementById('parentPhone').value,
+                parentPhone: pPhone,
                 familyStatus: document.getElementById('familyStatus').value,
                 familyIncome: document.getElementById('familyIncome').value,
                 allowance: document.getElementById('allowance').value,
@@ -584,9 +578,12 @@
 
             showLoader();
 
-            // กรณีไม่มี Google Sheet URL ให้บันทึกลงตัวแปรจำลอง
             if(!GAS_URL) {
                 setTimeout(() => {
+                    // ตอนแสดงผลจำลอง ลบเครื่องหมาย ' ออก
+                    studentData.studentPhone = studentData.studentPhone.replace(/^'/, '');
+                    studentData.parentPhone = studentData.parentPhone.replace(/^'/, '');
+                    
                     mockStorage[currentStudentId] = studentData;
                     document.getElementById('display-user-id').innerText = `ผู้ใช้งาน: ${currentStudentId} ${studentData.firstName} ${studentData.lastName}`;
                     hideLoader();
@@ -600,7 +597,6 @@
                 return;
             }
 
-            // ส่งข้อมูลไปยัง Google Sheet
             try {
                 let formData = new URLSearchParams();
                 formData.append('action', 'saveData');
@@ -615,7 +611,6 @@
                 hideLoader();
                 
                 if(result.status === 'success') {
-                    // อัปเดตชื่อผู้ใช้บน Navbar เมื่อบันทึกสำเร็จ
                     document.getElementById('display-user-id').innerText = `ผู้ใช้งาน: ${currentStudentId} ${studentData.firstName} ${studentData.lastName}`.trim();
                     
                     Swal.fire({
@@ -634,12 +629,13 @@
             }
         }
 
-        // ฟังก์ชันนำข้อมูลมาใส่ในฟอร์ม (ปรับปรุงระบบวันที่ให้รองรับ Input type=date และรักษาความสัมพันธ์ชื่อ-สกุล)
+        // ฟังก์ชันนำข้อมูลมาใส่ในฟอร์ม (ปรับปรุงแก้ปัญหา เบอร์โทรศัพท์ และ รูปภาพ Google Drive)
         function populateForm(data) {
             Object.keys(data).forEach(key => {
                 const element = document.getElementById(key);
                 if(element && key !== 'profilePic') {
-                    // จัดการค่าของช่องวันเกิดโดยเฉพาะ ให้ตรงกับรูปแบบ YYYY-MM-DD
+                    
+                    // 1. จัดการค่าของช่องวันเกิด
                     if(key === 'dob' && data[key]) {
                         try {
                             let dateObj = new Date(data[key]);
@@ -648,27 +644,42 @@
                                 let month = String(dateObj.getMonth() + 1).padStart(2, '0');
                                 let day = String(dateObj.getDate()).padStart(2, '0');
                                 element.value = `${year}-${month}-${day}`;
-                            } else {
-                                element.value = data[key];
-                            }
-                        } catch(e) {
-                            element.value = data[key];
-                        }
+                            } else { element.value = data[key]; }
+                        } catch(e) { element.value = data[key]; }
                     } 
-                    // ตรวจสอบความสัมพันธ์ หาก Sheet1 เป็นค่าว่าง ให้ใช้ Master Data จากชีต Users เป็นหลัก
+                    // 2. ตรวจสอบความสัมพันธ์ หาก Sheet1 เป็นค่าว่าง ให้ใช้จากชีต Users 
                     else if (['prefix', 'firstName', 'lastName'].includes(key)) {
                         element.value = data[key] || (userMasterData ? userMasterData[key] : '');
                     } 
+                    // 3. จัดการเบอร์โทรศัพท์ (เติม 0 ด้านหน้าถ้าหายไป)
+                    else if (['studentPhone', 'parentPhone'].includes(key)) {
+                        let phone = data[key] ? data[key].toString() : '';
+                        phone = phone.replace(/^'/, ''); // ลบเครื่องหมาย ' เผื่อติดมา
+                        if (phone && !phone.startsWith('0') && !isNaN(phone)) {
+                            phone = '0' + phone; 
+                        }
+                        element.value = phone;
+                    } 
+                    // 4. ข้อมูลอื่นๆ
                     else {
-                        element.value = data[key];
+                        let val = data[key] !== undefined && data[key] !== null ? data[key].toString() : '';
+                        element.value = val.replace(/^'/, ''); // ลบ ' ในกรณีอื่นๆ ด้วย
                     }
                 }
             });
             
-            // จัดการแสดงผลรูปภาพ
+            // 5. จัดการแสดงผลรูปภาพโปรไฟล์ (แก้ปัญหา Google Drive Block Image)
             if(data.profilePic && data.profilePic !== "") {
-                document.getElementById('profilePreview').src = data.profilePic;
-                currentProfileBase64 = data.profilePic;
+                let picUrl = data.profilePic;
+                // ถ้าเป็นลิงก์ Google Drive ให้แปลงเป็นลิงก์แบบ Thumbnail API เพื่อให้แสดงผลได้
+                if(picUrl.includes('drive.google.com/uc')) {
+                    const match = picUrl.match(/[?&]id=([^&]+)/);
+                    if (match && match[1]) {
+                        picUrl = `https://drive.google.com/thumbnail?id=${match[1]}&sz=w500`;
+                    }
+                }
+                document.getElementById('profilePreview').src = picUrl;
+                currentProfileBase64 = data.profilePic; // เก็บ URL ตัวเดิมไว้เพื่อส่งกลับตอนเซฟ
             } else {
                 document.getElementById('profilePreview').src = 'https://ui-avatars.com/api/?name=Student&background=random&size=150';
                 currentProfileBase64 = '';
