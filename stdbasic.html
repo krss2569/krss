@@ -361,11 +361,12 @@
     <script>
         // === การตั้งค่า Google Apps Script Web App URL ===
         // นำ URL ที่ได้จากการ Deploy Google Apps Script มาใส่ในช่องว่างด้านล่างนี้
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycby6IrECF84R5zFCiJfFnyPb-jOabcfvCjA9EWyvW1t7_CYUWYZyD6mmReFpwCzeBzWxzg/exec'; 
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyLxOSTdzC6cE-X_4LJpClQPNkBXA6H9rPL2gVJh4sD5BMzuNYu3DBTkV9_KX65nJCYjA/exec'; 
         
         let currentStudentId = '';
         let mockStorage = {}; // ใช้สำหรับจำลองระบบกรณีที่ยังไม่ได้ใส่ GAS_URL
         let currentProfileBase64 = ''; // เพิ่มตัวแปรเก็บรูปภาพ
+        let userMasterData = null; // เพิ่มตัวแปรเพื่อเก็บข้อมูลตั้งต้นจากตาราง Users
 
         // ฟังก์ชันเข้าสู่ระบบ (อัปเดตเพื่อตรวจสอบกับ Google Sheet พร้อมดึงข้อมูลผู้ใช้)
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -384,10 +385,12 @@
                     if(user === pass) { // จำลองโหมดทดสอบ ให้กรอกรหัสผ่านเดียวกับรหัสผู้ใช้งาน
                         currentStudentId = user;
                         
-                        // จำลองการดึงข้อมูลพื้นฐานมาแสดง
-                        document.getElementById('prefix').value = 'ด.ช.';
-                        document.getElementById('firstName').value = 'สมมติ';
-                        document.getElementById('lastName').value = 'ทดสอบระบบ';
+                        // จำลองข้อมูล Master จาก Users
+                        userMasterData = { prefix: 'ด.ช.', firstName: 'สมมติ', lastName: 'ทดสอบระบบ' };
+                        
+                        document.getElementById('prefix').value = userMasterData.prefix;
+                        document.getElementById('firstName').value = userMasterData.firstName;
+                        document.getElementById('lastName').value = userMasterData.lastName;
 
                         document.getElementById('display-user-id').innerText = `ผู้ใช้งาน: ${currentStudentId} สมมติ ทดสอบระบบ`;
 
@@ -419,21 +422,22 @@
                 if(result.status === 'success') {
                     currentStudentId = user;
 
-                    // นำข้อมูลที่ได้จาก Sheet Users มาใส่ในฟอร์มล่วงหน้า
+                    // บันทึกข้อมูลตั้งต้นจาก Sheet Users ไว้ในตัวแปร userMasterData
                     if (result.userData) {
-                        document.getElementById('prefix').value = result.userData.prefix || '';
-                        document.getElementById('firstName').value = result.userData.firstName || '';
-                        document.getElementById('lastName').value = result.userData.lastName || '';
+                        userMasterData = result.userData;
+                        document.getElementById('prefix').value = userMasterData.prefix || '';
+                        document.getElementById('firstName').value = userMasterData.firstName || '';
+                        document.getElementById('lastName').value = userMasterData.lastName || '';
                     }
 
-                    let dFName = result.userData && result.userData.firstName ? result.userData.firstName : '';
-                    let dLName = result.userData && result.userData.lastName ? result.userData.lastName : '';
+                    let dFName = userMasterData && userMasterData.firstName ? userMasterData.firstName : '';
+                    let dLName = userMasterData && userMasterData.lastName ? userMasterData.lastName : '';
                     document.getElementById('display-user-id').innerText = `ผู้ใช้งาน: ${currentStudentId} ${dFName} ${dLName}`.trim();
                     
                     document.getElementById('login-page').classList.remove('active');
                     document.getElementById('dashboard-page').classList.add('active');
                     
-                    // เมื่อล็อกอินผ่าน ให้ดึงข้อมูลประวัติเดิมมาแสดงด้วย (ถ้าเคยบันทึกแล้วจะเขียนทับข้อมูลพื้นฐาน)
+                    // เมื่อล็อกอินผ่าน ให้ดึงข้อมูลประวัติเดิมมาแสดงด้วย
                     fetchData(currentStudentId);
                 } else {
                     Swal.fire('การเข้าสู่ระบบล้มเหลว', 'รหัสประจำตัวหรือรหัสผ่านไม่ถูกต้อง', 'error');
@@ -479,6 +483,7 @@
                 if (result.isConfirmed) {
                     currentStudentId = '';
                     currentProfileBase64 = ''; // เคลียร์รูปภาพ
+                    userMasterData = null; // เคลียร์ข้อมูลหลัก
                     document.getElementById('profilePreview').src = 'https://ui-avatars.com/api/?name=Student&background=random&size=150';
                     document.getElementById('studentForm').reset();
                     document.getElementById('username').value = '';
@@ -525,9 +530,9 @@
                 if(result.status === 'success' && result.data) {
                     populateForm(result.data); // ดึงข้อมูลเต็มมาเขียนทับ
                     
-                    // เพิ่มการอัปเดตชื่อผู้ใช้บนแถบ Navbar อีกรอบ (ใช้ข้อมูลล่าสุดจากฐานข้อมูลหลัก)
-                    let dFName = result.data.firstName || document.getElementById('firstName').value || '';
-                    let dLName = result.data.lastName || document.getElementById('lastName').value || '';
+                    // อัปเดตแถบ Navbar อีกรอบ โดยดึงค่าจาก Field โดยตรงเพื่อให้สัมพันธ์กันเสมอ
+                    let dFName = document.getElementById('firstName').value || '';
+                    let dLName = document.getElementById('lastName').value || '';
                     document.getElementById('display-user-id').innerText = `ผู้ใช้งาน: ${currentStudentId} ${dFName} ${dLName}`.trim();
 
                     Swal.fire('เข้าสู่ระบบสำเร็จ', 'ระบบได้ดึงข้อมูลส่วนตัวของคุณขึ้นมาแล้ว', 'success');
@@ -536,7 +541,6 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                // ไม่แจ้ง Error น่ารำคาญ หากไม่พบข้อมูล ให้ผู้ใช้กรอกใหม่
             } finally {
                 hideLoader();
             }
@@ -630,7 +634,7 @@
             }
         }
 
-        // ฟังก์ชันนำข้อมูลมาใส่ในฟอร์ม (ปรับปรุงระบบวันที่ให้รองรับ Input type=date)
+        // ฟังก์ชันนำข้อมูลมาใส่ในฟอร์ม (ปรับปรุงระบบวันที่ให้รองรับ Input type=date และรักษาความสัมพันธ์ชื่อ-สกุล)
         function populateForm(data) {
             Object.keys(data).forEach(key => {
                 const element = document.getElementById(key);
@@ -650,7 +654,12 @@
                         } catch(e) {
                             element.value = data[key];
                         }
-                    } else {
+                    } 
+                    // ตรวจสอบความสัมพันธ์ หาก Sheet1 เป็นค่าว่าง ให้ใช้ Master Data จากชีต Users เป็นหลัก
+                    else if (['prefix', 'firstName', 'lastName'].includes(key)) {
+                        element.value = data[key] || (userMasterData ? userMasterData[key] : '');
+                    } 
+                    else {
                         element.value = data[key];
                     }
                 }
