@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบห้องสมุด โรงเรียนขัวเรียงศึกษา</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts: Kanit -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+            border-radius: 15px 15px 0 0 !important;
+            font-weight: 500;
+        }
+        .nav-pills .nav-link {
+            color: #495057;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.4);
+        }
+        .btn-primary {
+            border-radius: 8px;
+            padding: 10px 20px;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 10px 15px;
+        }
+        .status-badge {
+            font-size: 0.85em;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+        
+        /* Toast Notification Styling */
+        .toast-container {
+            z-index: 1055;
+        }
+        
+        /* Responsive Sidebar Navigation */
+        @media (max-width: 767.98px) {
+            .custom-nav-scroll {
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 5px;
+            }
+            .custom-nav-scroll .nav-item {
+                flex: 0 0 auto;
+            }
+            .custom-nav-scroll .nav-link {
+                margin-right: 8px;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-book-half me-2"></i> ห้องสมุดโรงเรียนขัวเรียงศึกษา
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-md-3 mb-3 mb-md-4">
+                <div class="card">
+                    <div class="card-body p-2 p-md-3">
+                        <ul class="nav nav-pills flex-row flex-md-column flex-nowrap overflow-auto custom-nav-scroll" id="pills-tab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active w-100 text-center text-md-start" id="pills-borrow-tab" data-bs-toggle="pill" data-bs-target="#pills-borrow" type="button" role="tab">
+                                    <i class="bi bi-journal-arrow-up me-1 me-md-2"></i> ยืมหนังสือ
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link w-100 text-center text-md-start mt-0 mt-md-2" id="pills-return-tab" data-bs-toggle="pill" data-bs-target="#pills-return" type="button" role="tab">
+                                    <i class="bi bi-journal-arrow-down me-1 me-md-2"></i> คืนหนังสือ
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link w-100 text-center text-md-start mt-0 mt-md-2" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button" role="tab" onclick="loadHistory()">
+                                    <i class="bi bi-clock-history me-1 me-md-2"></i> ประวัติยืม-คืน
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-9">
+                <div class="tab-content" id="pills-tabContent">
+                    
+                    <!-- Tab: ยืมหนังสือ -->
+                    <div class="tab-pane fade show active" id="pills-borrow" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white pb-2 pt-3">
+                                <h5><i class="bi bi-journal-arrow-up"></i> แบบฟอร์มยืมหนังสือ</h5>
+                            </div>
+                            <div class="card-body p-3 p-md-4">
+                                <form id="borrowForm">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">รหัสนักเรียน</label>
+                                            <input type="text" class="form-control" id="studentId" required placeholder="เช่น 65001">
+                                        </div>
+                                        <div class="col-md-6 mt-3 mt-md-0">
+                                            <label class="form-label">ชื่อ-นามสกุล</label>
+                                            <input type="text" class="form-control" id="studentName" required placeholder="ด.ช. สมชาย รักเรียน">
+                                        </div>
+                                    </div>
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label">รหัสหนังสือ</label>
+                                            <input type="text" class="form-control" id="bookId" required placeholder="เช่น B001">
+                                        </div>
+                                        <div class="col-md-6 mt-3 mt-md-0">
+                                            <label class="form-label">ชื่อหนังสือ</label>
+                                            <input type="text" class="form-control" id="bookName" required placeholder="ประวัติศาสตร์ไทย">
+                                        </div>
+                                    </div>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <button type="button" class="btn btn-light" onclick="document.getElementById('borrowForm').reset()">ล้างข้อมูล</button>
+                                        <button type="submit" class="btn btn-primary" id="btnSubmitBorrow">
+                                            <i class="bi bi-save me-1"></i> บันทึกการยืม
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: คืนหนังสือ -->
+                    <div class="tab-pane fade" id="pills-return" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header bg-success text-white pb-2 pt-3">
+                                <h5><i class="bi bi-journal-arrow-down"></i> แบบฟอร์มคืนหนังสือ</h5>
+                            </div>
+                            <div class="card-body p-3 p-md-4">
+                                <form id="returnForm">
+                                    <div class="mb-4">
+                                        <label class="form-label">รหัสหนังสือที่ต้องการคืน</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                                            <input type="text" class="form-control form-control-lg" id="returnBookId" required placeholder="สแกนหรือพิมพ์รหัสหนังสือ">
+                                            <button class="btn btn-success px-4" type="submit" id="btnSubmitReturn">บันทึกคืน</button>
+                                        </div>
+                                        <div class="form-text mt-2">ระบบจะค้นหาหนังสือที่กำลังยืมอยู่และอัปเดตสถานะเป็น "คืนแล้ว"</div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: ประวัติการยืม-คืน -->
+                    <div class="tab-pane fade" id="pills-history" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header pb-2 pt-3 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-list-columns-reverse"></i> ข้อมูลการยืม-คืนทั้งหมด</h5>
+                                <button class="btn btn-sm btn-outline-primary" onclick="loadHistory()">
+                                    <i class="bi bi-arrow-clockwise"></i> รีเฟรช
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped mb-0 text-center align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>วันที่ยืม</th>
+                                                <th>รหัสนักเรียน</th>
+                                                <th>ชื่อผู้ยืม</th>
+                                                <th>รหัสหนังสือ</th>
+                                                <th>ชื่อหนังสือ</th>
+                                                <th>สถานะ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historyTableBody">
+                                            <tr>
+                                                <td colspan="6" class="text-muted py-4">กำลังโหลดข้อมูล...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage">
+                    Message here
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // สถานะการจัดเก็บข้อมูล (จำลอง In-Memory ในกรณีที่ไม่มี Google Sheet URL)
+        let inMemoryDatabase = [
+            {
+                date: new Date().toLocaleString('th-TH'),
+                studentId: "65001",
+                studentName: "ด.ช. สมชาย รักเรียน",
+                bookId: "B001",
+                bookName: "ประวัติศาสตร์ไทย",
+                status: "ยืม"
+            }
+        ];
+
+        // ตัวแปรเก็บ Web App URL (หากมี URL จาก Google Apps Script สามารถนำมาใส่ในเครื่องหมายคำพูดด้านล่างได้เลย)
+        let googleSheetUrl = "https://script.google.com/macros/s/AKfycbyZMwBOr9urkpou-Ka44B7Fwqkcu5VXVc6yAFCt_YJuWZw-XPLbS0fQ-oQXFrtKMorqag/exec";
+
+        // ฟังก์ชันแสดงแจ้งเตือน (Toast)
+        function showNotification(message, type) {
+            const toastEl = document.getElementById('liveToast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastEl.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-primary');
+            if(type === 'success') toastEl.classList.add('bg-success');
+            else if(type === 'error') toastEl.classList.add('bg-danger');
+            else if(type === 'info') toastEl.classList.add('bg-primary');
+            else toastEl.classList.add('bg-warning');
+
+            toastMessage.textContent = message;
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+
+        // ฟังก์ชันยืมหนังสือ
+        document.getElementById('borrowForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSubmitBorrow');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> กำลังบันทึก...';
+
+            const data = {
+                studentId: document.getElementById('studentId').value,
+                studentName: document.getElementById('studentName').value,
+                bookId: document.getElementById('bookId').value,
+                bookName: document.getElementById('bookName').value,
+            };
+
+            if (googleSheetUrl) {
+                // ส่งข้อมูลไป Google Sheet ของจริง
+                const formData = new URLSearchParams();
+                formData.append('action', 'borrow');
+                for (const key in data) formData.append(key, data[key]);
+
+                fetch(googleSheetUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if(result.status === 'success') {
+                        showNotification("ยืมหนังสือสำเร็จ (บันทึกใน Google Sheets)", "success");
+                        document.getElementById('borrowForm').reset();
+                    } else {
+                        showNotification("เกิดข้อผิดพลาดในการบันทึก", "error");
+                    }
+                })
+                .catch(error => {
+                    showNotification("การเชื่อมต่อล้มเหลว โปรดตรวจสอบ URL", "error");
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-save me-1"></i> บันทึกการยืม';
+                });
+
+            } else {
+                // บันทึกลง In-Memory จำลอง
+                setTimeout(() => {
+                    inMemoryDatabase.push({
+                        date: new Date().toLocaleString('th-TH'),
+                        studentId: data.studentId,
+                        studentName: data.studentName,
+                        bookId: data.bookId,
+                        bookName: data.bookName,
+                        status: "ยืม"
+                    });
+                    showNotification("ยืมหนังสือสำเร็จ (โหมดจำลอง In-Memory)", "success");
+                    document.getElementById('borrowForm').reset();
+                    
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-save me-1"></i> บันทึกการยืม';
+                }, 500);
+            }
+        });
+
+        // ฟังก์ชันคืนหนังสือ
+        document.getElementById('returnForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSubmitReturn');
+            const bookId = document.getElementById('returnBookId').value;
+            
+            btn.disabled = true;
+            btn.innerHTML = 'กำลังตรวจสอบ...';
+
+            if (googleSheetUrl) {
+                // ส่งข้อมูลไป Google Sheet ของจริง
+                const formData = new URLSearchParams();
+                formData.append('action', 'return');
+                formData.append('bookId', bookId);
+
+                fetch(googleSheetUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if(result.status === 'success') {
+                        showNotification("คืนหนังสือสำเร็จ", "success");
+                        document.getElementById('returnForm').reset();
+                    } else {
+                        showNotification("ไม่พบประวัติการยืมของหนังสือรหัสนี้", "warning");
+                    }
+                })
+                .catch(error => {
+                    showNotification("การเชื่อมต่อล้มเหลว โปรดตรวจสอบ URL", "error");
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'บันทึกคืน';
+                });
+            } else {
+                // อัปเดตใน In-Memory จำลอง
+                setTimeout(() => {
+                    let found = false;
+                    // ค้นหาจากหลังสุดไปหน้าสุด (ล่าสุด)
+                    for (let i = inMemoryDatabase.length - 1; i >= 0; i--) {
+                        if (inMemoryDatabase[i].bookId === bookId && inMemoryDatabase[i].status === "ยืม") {
+                            inMemoryDatabase[i].status = "คืนแล้ว";
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        showNotification(`รับคืนหนังสือ ${bookId} สำเร็จ (โหมดจำลอง)`, "success");
+                        document.getElementById('returnForm').reset();
+                    } else {
+                        showNotification(`ไม่พบประวัติการยืมของรหัส ${bookId}`, "warning");
+                    }
+
+                    btn.disabled = false;
+                    btn.innerHTML = 'บันทึกคืน';
+                }, 500);
+            }
+        });
+
+        // ฟังก์ชันโหลดข้อมูลประวัติ
+        function loadHistory() {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-muted py-4"><div class="spinner-border spinner-border-sm me-2"></div>กำลังโหลดข้อมูล...</td></tr>';
+
+            if (googleSheetUrl) {
+                // โหลดจาก Google Sheet
+                fetch(googleSheetUrl)
+                .then(response => response.json())
+                .then(data => {
+                    renderTable(data);
+                })
+                .catch(error => {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-danger py-4">ไม่สามารถโหลดข้อมูลได้ ตรวจสอบ URL หรือลองอีกครั้ง</td></tr>';
+                });
+            } else {
+                // โหลดจาก In-Memory
+                setTimeout(() => {
+                    renderTable(inMemoryDatabase);
+                }, 300);
+            }
+        }
+
+        // ฟังก์ชันวาดตาราง
+        function renderTable(data) {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-muted py-4">ยังไม่มีประวัติการยืม-คืน</td></tr>';
+                return;
+            }
+
+            // แสดงรายการใหม่ล่าสุดด้านบน
+            const reversedData = [...data].reverse();
+
+            reversedData.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                let statusBadge = '';
+                if(item.status === 'ยืม') {
+                    statusBadge = '<span class="badge bg-warning text-dark status-badge">กำลังยืม</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-success status-badge">คืนแล้ว</span>';
+                }
+
+                tr.innerHTML = `
+                    <td class="text-muted small">${item.date}</td>
+                    <td>${item.studentId}</td>
+                    <td class="text-start">${item.studentName}</td>
+                    <td><strong>${item.bookId}</strong></td>
+                    <td class="text-start">${item.bookName}</td>
+                    <td>${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // โหลดข้อมูลอัตโนมัติครั้งแรก
+        window.onload = function() {
+            loadHistory();
+        };
+
+    </script>
+</body>
+</html>
