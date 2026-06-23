@@ -205,6 +205,11 @@
                         </div>
 
                         <div class="mb-4">
+                            <label for="email" class="form-label">อีเมล <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" placeholder="ระบุอีเมลสำหรับติดต่อ" required>
+                        </div>
+
+                        <div class="mb-4">
                             <label class="form-label">อัพโหลดสลิปโอนเงิน <span class="text-danger">*</span></label>
                             <div class="upload-area" id="uploadArea" onclick="document.getElementById('slipImage').click()">
                                 <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
@@ -247,7 +252,7 @@
                 <div class="modal-body">
                     <p>เพื่อบันทึกข้อมูลและรูปภาพลง <b>Google Sheet</b> และ <b>Google Drive</b> ให้ทำตามขั้นตอนดังนี้:</p>
                     <ol>
-                        <li>สร้าง Google Sheet ใหม่ สร้างคอลัมน์ A-I: <code>Timestamp, คำนำหน้า, ชื่อ, นามสกุล, ตำแหน่ง, โรงเรียน, สหวิทยาเขต, หมายเหตุ, สลิปโอนเงิน</code></li>
+                        <li>สร้าง Google Sheet ใหม่ สร้างคอลัมน์ A-J: <code>Timestamp, คำนำหน้า, ชื่อ, นามสกุล, ตำแหน่ง, โรงเรียน, สหวิทยาเขต, อีเมล, หมายเหตุ, สลิปโอนเงิน</code></li>
                         <li>ไปที่เมนู <b>ส่วนขยาย (Extensions)</b> -> <b>Apps Script</b></li>
                         <li>ลบโค้ดเดิมออก และวางโค้ดด้านล่างนี้ลงไป:</li>
                     </ol>
@@ -280,6 +285,7 @@ function doPost(e) {
       data.position,
       data.school,
       data.network,
+      data.email,
       data.remark,
       fileUrl
     ]);
@@ -374,6 +380,7 @@ function doPost(e) {
                 position: document.getElementById('position').value,
                 school: document.getElementById('school').value,
                 network: document.getElementById('network').value,
+                email: document.getElementById('email').value,
                 remark: document.getElementById('remark').value,
                 fileBase64: base64Data,
                 fileName: fileName,
