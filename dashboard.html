@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบข้อมูลโครงการศึกษาดูงาน</title>
+    
+    <!-- นำเข้า Tailwind CSS สำหรับการตกแต่ง -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- นำเข้า Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- นำเข้า PapaParse สำหรับอ่านไฟล์ CSV จาก Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- นำเข้าฟอนต์ Sarabun เพื่อให้อ่านง่าย -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-blue-700 text-white p-6 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="file-check" class="w-7 h-7"></i>
+                    ระบบข้อมูลโครงการศึกษาดูงาน
+                </h1>
+                <p class="text-blue-100 mt-1">ค้นหาและตรวจสอบสลิปโอนเงิน / ใบเสร็จรับเงิน (ข้อมูล Real-time)</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6">
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 flex items-center border-l-4 border-blue-500">
+                <div class="bg-blue-100 p-3 rounded-full mr-4 text-blue-600">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">จำนวนผู้ลงทะเบียน (ที่กรอง)</p>
+                    <h2 class="text-3xl font-bold text-gray-800"><span id="stat-total">0</span> <span class="text-sm font-normal text-gray-500">คน</span></h2>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 flex items-center border-l-4 border-emerald-500">
+                <div class="bg-emerald-100 p-3 rounded-full mr-4 text-emerald-600">
+                    <i data-lucide="briefcase" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">ผู้บริหารสถานศึกษา</p>
+                    <h2 class="text-3xl font-bold text-gray-800"><span id="stat-directors">0</span> <span class="text-sm font-normal text-gray-500">คน</span></h2>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 flex items-center border-l-4 border-purple-500">
+                <div class="bg-purple-100 p-3 rounded-full mr-4 text-purple-600">
+                    <i data-lucide="map-pin" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">ครูผู้สอน</p>
+                    <h2 class="text-3xl font-bold text-gray-800"><span id="stat-teachers">0</span> <span class="text-sm font-normal text-gray-500">คน</span></h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                    <i data-lucide="filter" class="w-5 h-5"></i>
+                    ตัวกรองข้อมูล
+                </h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Search Input -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-600 mb-1">ค้นหาชื่อหรือโรงเรียน</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                        <input
+                            type="text"
+                            id="search-input"
+                            placeholder="พิมพ์ชื่อ, นามสกุล หรือโรงเรียน..."
+                            class="pl-10 w-full rounded-lg border border-gray-300 py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                            disabled
+                        />
+                    </div>
+                </div>
+
+                <!-- Position Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">ตำแหน่ง</label>
+                    <select
+                        id="position-select"
+                        class="w-full rounded-lg border border-gray-300 py-2.5 px-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm text-gray-700"
+                        disabled
+                    >
+                        <option value="ทั้งหมด">ทั้งหมด</option>
+                    </select>
+                </div>
+
+                <!-- Campus Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">สหวิทยาเขต</label>
+                    <select
+                        id="campus-select"
+                        class="w-full rounded-lg border border-gray-300 py-2.5 px-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm text-gray-700"
+                        disabled
+                    >
+                        <option value="ทั้งหมด">ทั้งหมด</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ที่</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ชื่อ-สกุล</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ตำแหน่ง</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">โรงเรียน / สหวิทยาเขต</th>
+                            <th scope="col" class="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">เอกสาร</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- สถานะกำลังโหลด -->
+                        <tr>
+                            <td colSpan="5" class="px-6 py-12 text-center text-gray-500">
+                                <div class="flex justify-center mb-3">
+                                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-blue-500"></i>
+                                </div>
+                                <p class="text-lg font-medium">กำลังเชื่อมต่อข้อมูลจาก Google Sheets...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
+                <p class="text-sm text-gray-500">
+                    แสดงข้อมูล <span id="showing-count" class="font-semibold text-gray-700">0</span> รายการ จากทั้งหมด <span id="total-count" class="font-semibold text-gray-700">0</span> รายการ
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Script -->
+    <script>
+        // เริ่มต้นไอคอน
+        lucide.createIcons();
+
+        // ----------------------------------------------------
+        // กำหนดแผ่นงานที่ใช้ดึงข้อมูลโดยตรง (ไม่สามารถแก้ผ่านหน้าเว็บได้)
+        // ----------------------------------------------------
+        const SHEET_ID = '1rlczJji0unHTW3m-h9_boU9nR8ZSeBwUrIoy6FeyfX8'; 
+        const SHEET_NAME = 'ชีต2';
+
+        // ดัชนีคอลัมน์เริ่มต้น (จะถูกเขียนทับอัตโนมัติด้วยระบบ Auto-detect เมื่อดาวน์โหลดข้อมูลสำเร็จ)
+        let COL_INDEX = {
+            TITLE: 1,        // คำนำหน้า
+            FIRST_NAME: 2,   // ชื่อ
+            LAST_NAME: 3,    // นามสกุล
+            POSITION: 4,     // ตำแหน่ง
+            SCHOOL: 5,       // โรงเรียน
+            CAMPUS: 6,       // สหวิทยาเขต
+            SLIP_URL: 7,     // สลิปโอนเงิน
+            RECEIPT_URL: 8   // ใบเสร็จรับเงิน
+        };
+
+        let initialData = [];
+        let searchTerm = '';
+        let selectedPosition = 'ทั้งหมด';
+        let selectedCampus = 'ทั้งหมด';
+
+        // การอ้างอิง DOM Elements
+        const searchInput = document.getElementById('search-input');
+        const positionSelect = document.getElementById('position-select');
+        const campusSelect = document.getElementById('campus-select');
+        const tableBody = document.getElementById('table-body');
+        const statTotal = document.getElementById('stat-total');
+        const statDirectors = document.getElementById('stat-directors');
+        const statTeachers = document.getElementById('stat-teachers');
+        const showingCount = document.getElementById('showing-count');
+        const totalCount = document.getElementById('total-count');
+
+        // ----------------------------------------------------
+        // ฟังก์ชันตรวจหาคอลัมน์จากแถวหัวตารางอัตโนมัติ (Auto-detect)
+        // ----------------------------------------------------
+        function autoDetectColumns(headers) {
+            if (!headers || headers.length === 0) return;
+            
+            headers.forEach((header, index) => {
+                if (!header) return;
+                const h = header.toString().trim();
+                
+                if (h.includes('คำนำหน้า')) COL_INDEX.TITLE = index;
+                else if (h === 'ชื่อ' || h.startsWith('ชื่อ')) COL_INDEX.FIRST_NAME = index;
+                else if (h.includes('นามสกุล')) COL_INDEX.LAST_NAME = index;
+                else if (h.includes('ตำแหน่ง')) COL_INDEX.POSITION = index;
+                else if (h.includes('โรงเรียน')) COL_INDEX.SCHOOL = index;
+                else if (h.includes('สหวิทยาเขต')) COL_INDEX.CAMPUS = index;
+                else if (h.includes('สลิป') || h.includes('slip') || h.includes('โอนเงิน')) COL_INDEX.SLIP_URL = index;
+                else if (h.includes('ใบเสร็จ') || h.includes('receipt') || h.includes('Merged Doc URL - ใบเสร็จ')) COL_INDEX.RECEIPT_URL = index;
+            });
+            console.log("คีย์ที่ตรวจพบโดยระบบ Auto-detect:", COL_INDEX);
+        }
+
+        // ----------------------------------------------------
+        // ดึงข้อมูล Real-time
+        // ----------------------------------------------------
+        function fetchSheetData() {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colSpan="5" class="px-6 py-12 text-center text-gray-500">
+                        <div class="flex justify-center mb-3">
+                            <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-blue-500"></i>
+                        </div>
+                        <p class="text-base font-medium">กำลังเชื่อมต่อข้อมูลจาก Google Sheets...</p>
+                    </td>
+                </tr>
+            `;
+            lucide.createIcons();
+
+            // ลิงก์หลักสำหรับดึงข้อมูล (Query API) 
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+            // กำหนด cache: "no-store" ป้องกันเบราว์เซอร์จำค่า Error เดิมไว้
+            fetch(url, { cache: "no-store" })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`การเชื่อมต่อถูกปฏิเสธ (HTTP ${response.status})`);
+                    }
+                    return response.text();
+                })
+                .then(csvText => {
+                    // หาก Google ส่งกลับมาเป็นหน้าเว็บ HTML (หน้าลงชื่อเข้าใช้) แปลว่าชีตยังไม่เป็นสาธารณะ
+                    if (csvText.trim().startsWith('<') || csvText.toLowerCase().includes('<!doctype html>')) {
+                        throw new Error('แผ่นงานยังไม่ได้เปิดแชร์สาธารณะ (กรุณาตั้งค่า "ทุกคนที่มีลิงก์")');
+                    }
+                    
+                    if (csvText.trim() === '') {
+                        throw new Error('ไม่พบข้อมูลในแผ่นงาน หรือระบุชื่อแผ่นงานไม่ถูกต้อง');
+                    }
+
+                    processCSVData(csvText);
+                })
+                .catch(error => {
+                    showErrorInUI(error.message || error);
+                });
+        }
+
+        function processCSVData(csvText) {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    const rows = results.data;
+                    if (!rows || rows.length <= 1) {
+                        showErrorInUI('ไม่พบข้อมูลที่อ่านได้ในแผ่นงาน');
+                        return;
+                    }
+                    
+                    // สแกนหาดัชนีตำแหน่งคอลัมน์อัตโนมัติจากแถวบนสุด
+                    autoDetectColumns(rows[0]);
+                    
+                    initialData = rows.slice(1).map((row, index) => {
+                        return {
+                            id: index + 1,
+                            title: row[COL_INDEX.TITLE] || '',
+                            firstName: row[COL_INDEX.FIRST_NAME] || '',
+                            lastName: row[COL_INDEX.LAST_NAME] || '',
+                            position: row[COL_INDEX.POSITION] || 'ไม่ระบุ',
+                            school: row[COL_INDEX.SCHOOL] || 'ไม่ระบุ',
+                            campus: row[COL_INDEX.CAMPUS] || 'ไม่ระบุ',
+                            slipUrl: (row[COL_INDEX.SLIP_URL] && row[COL_INDEX.SLIP_URL] !== '') ? row[COL_INDEX.SLIP_URL] : '#',
+                            receiptUrl: (row[COL_INDEX.RECEIPT_URL] && row[COL_INDEX.RECEIPT_URL] !== '') ? row[COL_INDEX.RECEIPT_URL] : '#'
+                        };
+                    }).filter(item => item.firstName && item.firstName.trim() !== '' && item.firstName !== 'ชื่อ'); 
+
+                    // เปิดการทำงานของ Filter คัดกรอง
+                    searchInput.disabled = false;
+                    positionSelect.disabled = false;
+                    campusSelect.disabled = false;
+
+                    initFilters();
+                    renderTable();
+                }
+            });
+        }
+
+        // แสดงหน้าอธิบายขั้นตอนแก้ปัญหาอย่างละเอียด
+        function showErrorInUI(errorMsg) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colSpan="5" class="px-6 py-8">
+                        <div class="max-w-2xl mx-auto text-left bg-red-50 border border-red-200 rounded-xl p-6 text-slate-800">
+                            <div class="flex items-start gap-3.5 mb-4 text-red-600">
+                                <i data-lucide="alert-circle" class="w-8 h-8 shrink-0 mt-0.5"></i>
+                                <div>
+                                    <h4 class="text-base font-bold">ไม่สามารถดึงข้อมูลจาก Google Sheets ได้</h4>
+                                    <p class="text-xs text-red-500 font-mono mt-0.5">${errorMsg}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4 text-sm border-t border-red-200/50 pt-4">
+                                <p class="font-bold text-slate-900">กรุณาตั้งค่า Google Sheets ของคุณ ตามขั้นตอนดังนี้:</p>
+                                
+                                <div class="space-y-4">
+                                    <div class="flex gap-3">
+                                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600 text-[11px] font-bold shrink-0 mt-0.5">1</span>
+                                        <div>
+                                            <strong class="text-slate-900">เปิดแชร์แผ่นงานเป็นแบบสาธารณะ:</strong>
+                                            <p class="text-slate-600 mt-1">
+                                                เปิดเอกสาร Google Sheets ของคุณ ➔ กดปุ่ม <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-semibold">แชร์ (Share)</span> ที่มุมขวาบน ➔ ในหัวข้อ <strong>"การเข้าถึงทั่วไป" (General Access)</strong> เปลี่ยนจาก "จำกัด" (Restricted) ให้เป็น <strong>"ทุกคนที่มีลิงก์" (Anyone with the link)</strong> และกำหนดบทบาทเป็น <strong>"ผู้มีสิทธิ์อ่าน" (Viewer)</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex gap-3">
+                                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600 text-[11px] font-bold shrink-0 mt-0.5">2</span>
+                                        <div>
+                                            <strong class="text-slate-900">ตรวจสอบชื่อแผ่นงาน (Sheet Tab Name):</strong>
+                                            <p class="text-slate-600 mt-1">
+                                                แท็บชื่อด้านล่างในชีตของคุณต้องสะกดว่า <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">${SHEET_NAME}</span> ตรงกันเป๊ะทุกตัวอักษร
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-3">
+                                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-red-600 text-[11px] font-bold shrink-0 mt-0.5">3</span>
+                                        <div>
+                                            <strong class="text-slate-900">กดเชื่อมต่ออีกครั้ง:</strong>
+                                            <p class="text-slate-600 mt-1.5">
+                                                เมื่อแชร์แล้วให้กดปุ่ม <button onclick="fetchSheetData()" class="px-2.5 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-1">เชื่อมต่อใหม่ <i data-lucide="refresh-cw" class="w-3 h-3"></i></button> เพื่อลองใหม่อีกครั้ง
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            lucide.createIcons();
+        }
+
+        // ----------------------------------------------------
+        // ตัวกรองและการแสดงตารางข้อมูล
+        // ----------------------------------------------------
+        function initFilters() {
+            positionSelect.innerHTML = '<option value="ทั้งหมด">ทั้งหมด</option>';
+            campusSelect.innerHTML = '<option value="ทั้งหมด">ทั้งหมด</option>';
+
+            const positions = ['ทั้งหมด', ...new Set(initialData.map(item => item.position).filter(Boolean))];
+            const campuses = ['ทั้งหมด', ...new Set(initialData.map(item => item.campus).filter(Boolean))];
+
+            positions.forEach(pos => {
+                if(pos !== 'ทั้งหมด' && pos !== 'ไม่ระบุ') {
+                    const option = document.createElement('option');
+                    option.value = pos;
+                    option.textContent = pos;
+                    positionSelect.appendChild(option);
+                }
+            });
+
+            campuses.forEach(campus => {
+                if(campus !== 'ทั้งหมด' && campus !== 'ไม่ระบุ') {
+                    const option = document.createElement('option');
+                    option.value = campus;
+                    option.textContent = campus;
+                    campusSelect.appendChild(option);
+                }
+            });
+        }
+
+        function renderTable() {
+            // 1. กรองแถวข้อมูล
+            const filteredData = initialData.filter(item => {
+                const fullName = `${item.title}${item.firstName} ${item.lastName}`.toLowerCase();
+                const schoolName = item.school.toLowerCase();
+                const term = searchTerm.toLowerCase();
+                
+                const matchSearch = fullName.includes(term) || schoolName.includes(term);
+                const matchPosition = selectedPosition === 'ทั้งหมด' || item.position === selectedPosition;
+                const matchCampus = selectedCampus === 'ทั้งหมด' || item.campus === selectedCampus;
+
+                return matchSearch && matchPosition && matchCampus;
+            });
+
+            // 2. อัปเดตสถิติ
+            statTotal.textContent = filteredData.length;
+            statDirectors.textContent = filteredData.filter(item => item.position.includes('ผู้อำนวยการ')).length;
+            statTeachers.textContent = filteredData.filter(item => item.position === 'ครู').length;
+            showingCount.textContent = filteredData.length;
+            totalCount.textContent = initialData.length;
+
+            // 3. แสดงผลลงตาราง
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colSpan="5" class="px-6 py-12 text-center text-gray-500">
+                            <div class="flex justify-center mb-3">
+                                <i data-lucide="file-x" class="w-12 h-12 text-gray-300"></i>
+                            </div>
+                            <p class="text-lg">ไม่พบข้อมูลที่ตรงกับเงื่อนไขการค้นหา</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                const rowsHtml = filteredData.map((item, index) => {
+                    let slipHtml = '';
+                    let receiptHtml = '';
+                    
+                    if (item.slipUrl && item.slipUrl !== '#') {
+                        slipHtml = `<a href="${item.slipUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-md text-xs font-semibold transition-all hover:scale-105" title="สลิปโอนเงิน">
+                            สลิป <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>`;
+                    }
+                    
+                    if (item.receiptUrl && item.receiptUrl !== '#') {
+                        receiptHtml = `<a href="${item.receiptUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-md text-xs font-semibold transition-all hover:scale-105" title="ใบเสร็จรับเงิน">
+                            ใบเสร็จ <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>`;
+                    }
+
+                    const noDataHtml = (item.slipUrl === '#' && item.receiptUrl === '#') 
+                        ? `<span class="text-xs text-gray-400 font-medium">- ไม่มีข้อมูล -</span>` : '';
+
+                    return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-mono">${index + 1}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-semibold text-slate-800">${item.title}${item.firstName} ${item.lastName}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                                ${item.position}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-slate-700">${item.school}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">${item.campus}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                ${slipHtml}
+                                ${receiptHtml}
+                                ${noDataHtml}
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+                
+                tableBody.innerHTML = rowsHtml;
+            }
+
+            lucide.createIcons();
+        }
+
+        // ----------------------------------------------------
+        // จัดการ Event Listeners ของปุ่มคัดกรอง
+        // ----------------------------------------------------
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            renderTable();
+        });
+
+        positionSelect.addEventListener('change', (e) => {
+            selectedPosition = e.target.value;
+            renderTable();
+        });
+
+        campusSelect.addEventListener('change', (e) => {
+            selectedCampus = e.target.value;
+            renderTable();
+        });
+
+        // ดึงข้อมูลครั้งแรกเมื่อหน้าเว็บโหลด
+        fetchSheetData();
+
+    </script>
+</body>
+</html>
