@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนโครงการศึกษาดูงานฯ สพม.ขอนแก่น</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts: Noto Sans Thai -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Noto Sans Thai', sans-serif;
+            background-color: #fff0f5; /* Soft Pink Background */
+            color: #333;
+        }
+        .header-banner {
+            background: linear-gradient(135deg, #ff66b2, #ff1a8c);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+            text-align: center;
+            margin-bottom: -40px;
+            position: relative;
+            z-index: 1;
+        }
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.6;
+        }
+        .header-subtitle {
+            font-size: 1.1rem;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+        .form-container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.15);
+            position: relative;
+            z-index: 2;
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #d10068;
+        }
+        .form-control, .form-select {
+            border: 1px solid #ffb3d9;
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #ff1a8c;
+            box-shadow: 0 0 0 0.25rem rgba(255, 26, 140, 0.25);
+        }
+        .btn-pink {
+            background: linear-gradient(135deg, #ff1a8c, #d10068);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(209, 0, 104, 0.3);
+        }
+        .btn-pink:hover {
+            background: linear-gradient(135deg, #d10068, #a30052);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(209, 0, 104, 0.4);
+        }
+        .upload-area {
+            border: 2px dashed #ffb3d9;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            background-color: #fffafd;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            background-color: #fff0f5;
+            border-color: #ff1a8c;
+        }
+        .upload-icon {
+            font-size: 3rem;
+            color: #ff66b2;
+            margin-bottom: 10px;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+        #setup-guide-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: #333;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+        #setup-guide-btn:hover {
+            background-color: #111;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Banner -->
+    <div class="header-banner">
+        <div class="container">
+            <i class="fa-solid fa-plane-departure fa-2x mb-3"></i>
+            <h1 class="header-title">โครงการศึกษาดูงานเพื่อพัฒนาศักยภาพ<br>และยกระดับคุณภาพการบริหารจัดการสู่องค์กรนวัตกรรมแห่งการเรียนรู้</h1>
+            <p class="header-subtitle">
+                สังกัดสำนักงานเขตพื้นที่การศึกษามัธยมศึกษาขอนแก่น<br>
+                <i class="fa-regular fa-calendar-days me-2"></i>ระหว่างวันที่ 14-16 สิงหาคม 2569 ณ จังหวัดนครพนม
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Form Container -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="form-container">
+                    <h3 class="text-center mb-4" style="color: #d10068; font-weight: 700;">แบบฟอร์มลงทะเบียน</h3>
+                    
+                    <form id="registrationForm">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <label for="prefix" class="form-label">คำนำหน้า <span class="text-danger">*</span></label>
+                                <select class="form-select" id="prefix" required>
+                                    <option value="" disabled selected>เลือก...</option>
+                                    <option value="นาย">นาย</option>
+                                    <option value="นาง">นาง</option>
+                                    <option value="นางสาว">นางสาว</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <label for="firstName" class="form-label">ชื่อ <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="firstName" placeholder="ชื่อจริง" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="lastName" class="form-label">นามสกุล <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="lastName" placeholder="นามสกุล" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="position" class="form-label">ตำแหน่ง <span class="text-danger">*</span></label>
+                            <select class="form-select" id="position" required>
+                                <option value="" disabled selected>เลือกตำแหน่ง...</option>
+                                <option value="ผู้อำนวยการสถานศึกษา">ผู้อำนวยการสถานศึกษา</option>
+                                <option value="รองผู้อำนวยการสถานศึกษา">รองผู้อำนวยการสถานศึกษา</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="school" class="form-label">โรงเรียน <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="school" placeholder="ระบุชื่อโรงเรียน" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="network" class="form-label">สหวิทยาเขต <span class="text-danger">*</span></label>
+                            <select class="form-select" id="network" required>
+                                <option value="" disabled selected>เลือกสหวิทยาเขต...</option>
+                                <option value="สหวิทยาเขตเมืองขอนแก่น">สหวิทยาเขตเมืองขอนแก่น</option>
+                                <option value="สหวิทยาเขตแก่นนครราชพฤกษ์">สหวิทยาเขตแก่นนครราชพฤกษ์</option>
+                                <option value="สหวิทยาเขตกัลยาณมิตร">สหวิทยาเขตกัลยาณมิตร</option>
+                                <option value="สหวิทยาเขตปราสาทพญาไผ่">สหวิทยาเขตปราสาทพญาไผ่</option>
+                                <option value="สหวิทยาเขตอุดมคงคาคีรี">สหวิทยาเขตอุดมคงคาคีรี</option>
+                                <option value="สหวิทยาเขตหนองสองห้อง–พล">สหวิทยาเขตหนองสองห้อง–พล</option>
+                                <option value="สหวิทยาเขตแวงศิลาทอง">สหวิทยาเขตแวงศิลาทอง</option>
+                                <option value="สหวิทยาเขตพระธาตุขามแก่น">สหวิทยาเขตพระธาตุขามแก่น</option>
+                                <option value="สหวิทยาเขตน้ำพอง-กระนวน">สหวิทยาเขตน้ำพอง-กระนวน</option>
+                                <option value="สหวิทยาเขตเวียงเรือคำ">สหวิทยาเขตเวียงเรือคำ</option>
+                                <option value="สหวิทยาเขตชุมแพม่านชมพู">สหวิทยาเขตชุมแพม่านชมพู</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">อัพโหลดสลิปโอนเงิน <span class="text-danger">*</span></label>
+                            <div class="upload-area" id="uploadArea" onclick="document.getElementById('slipImage').click()">
+                                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                                <p class="mb-1">คลิกเพื่อเลือกไฟล์รูปภาพ</p>
+                                <small class="text-muted">รองรับไฟล์ .jpg, .png</small>
+                                <input type="file" id="slipImage" class="d-none" accept="image/*" required>
+                                <img id="preview" class="preview-image mx-auto" alt="Preview Image">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="remark" class="form-label">หมายเหตุ <span class="text-muted fw-normal fs-6">(กรณีต้องการอธิบายเพิ่มเติม)</span></label>
+                            <textarea class="form-control" id="remark" rows="2" placeholder="ระบุข้อมูลเพิ่มเติม (ถ้ามี)"></textarea>
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <button type="submit" class="btn btn-pink" id="submitBtn">
+                                <i class="fa-solid fa-paper-plane me-2"></i> ยืนยันการลงทะเบียน
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guide Button -->
+    <div id="setup-guide-btn" title="วิธีการเชื่อมต่อ Google Sheet" data-bs-toggle="modal" data-bs-target="#setupModal">
+        <i class="fa-solid fa-code"></i>
+    </div>
+
+    <!-- Setup Modal (Instructions for Google Apps Script) -->
+    <div class="modal fade" id="setupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-cogs me-2"></i> การตั้งค่า Google Apps Script</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>เพื่อบันทึกข้อมูลและรูปภาพลง <b>Google Sheet</b> และ <b>Google Drive</b> ให้ทำตามขั้นตอนดังนี้:</p>
+                    <ol>
+                        <li>สร้าง Google Sheet ใหม่ สร้างคอลัมน์ A-I: <code>Timestamp, คำนำหน้า, ชื่อ, นามสกุล, ตำแหน่ง, โรงเรียน, สหวิทยาเขต, หมายเหตุ, สลิปโอนเงิน</code></li>
+                        <li>ไปที่เมนู <b>ส่วนขยาย (Extensions)</b> -> <b>Apps Script</b></li>
+                        <li>ลบโค้ดเดิมออก และวางโค้ดด้านล่างนี้ลงไป:</li>
+                    </ol>
+                    <pre class="bg-light p-3 border rounded" style="max-height: 300px; overflow-y: auto;">
+<code class="language-javascript">
+const FOLDER_ID = 'ใส่_ID_โฟลเดอร์_Google_Drive_ที่นี่'; // สร้างโฟลเดอร์ใน Drive แล้วเอา ID มาใส่
+const SHEET_NAME = 'Sheet1'; // ชื่อ Sheet ที่ต้องการบันทึก
+
+function doPost(e) {
+  try {
+    let data = JSON.parse(e.postData.contents);
+    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+    
+    // จัดการไฟล์รูปภาพ Base64
+    let fileUrl = "";
+    if (data.fileBase64 && data.fileName) {
+      let decodedData = Utilities.base64Decode(data.fileBase64.split(",")[1]);
+      let blob = Utilities.newBlob(decodedData, data.fileMimeType, data.fileName);
+      let folder = DriveApp.getFolderById(FOLDER_ID);
+      let file = folder.createFile(blob);
+      fileUrl = file.getUrl();
+    }
+
+    // บันทึกข้อมูลลง Sheet
+    sheet.appendRow([
+      new Date(),
+      data.prefix,
+      data.firstName,
+      data.lastName,
+      data.position,
+      data.school,
+      data.network,
+      data.remark,
+      fileUrl
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ status: 'success' })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+</code>
+                    </pre>
+                    <ol start="4">
+                        <li>กดปุ่ม <b>การทำให้ใช้งานได้ (Deploy)</b> -> <b>การทำให้ใช้งานได้รายการใหม่ (New deployment)</b></li>
+                        <li>เลือกประเภทเป็น <b>เว็บแอป (Web app)</b></li>
+                        <li>สิทธิ์การเข้าถึงให้เลือก <b>ทุกคน (Anyone)</b> แล้วกดนำไปใช้งาน</li>
+                        <li>คัดลอก <b>URL ของเว็บแอป</b> มาใส่ที่ตัวแปร <code>GOOGLE_SCRIPT_URL</code> ในโค้ด Javascript ด้านล่างของไฟล์ HTML นี้</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.0/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        // ==========================================
+        // นำ URL ที่ได้จาก Google Apps Script มาใส่ที่นี่
+        // ==========================================
+        const GOOGLE_SCRIPT_URL = 'YOUR_WEBAPP_URL_HERE'; 
+
+        const fileInput = document.getElementById('slipImage');
+        const preview = document.getElementById('preview');
+        let base64Data = null;
+        let mimeType = null;
+        let fileName = null;
+
+        // Image Preview and Base64 Encoding
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Check if file is image
+                if (!file.type.match('image.*')) {
+                    Swal.fire('เกิดข้อผิดพลาด!', 'กรุณาอัพโหลดไฟล์รูปภาพเท่านั้น', 'error');
+                    fileInput.value = '';
+                    return;
+                }
+
+                fileName = file.name;
+                mimeType = file.type;
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    preview.src = event.target.result;
+                    preview.style.display = 'block';
+                    base64Data = event.target.result; // This contains data:image/jpeg;base64,...
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+                base64Data = null;
+            }
+        });
+
+        // Form Submission
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!base64Data) {
+                Swal.fire('แจ้งเตือน', 'กรุณาอัพโหลดสลิปโอนเงิน', 'warning');
+                return;
+            }
+
+            if (GOOGLE_SCRIPT_URL === 'YOUR_WEBAPP_URL_HERE') {
+                 Swal.fire('ยังไม่ได้เชื่อมต่อระบบ', 'กรุณาตั้งค่า Google Apps Script และใส่ URL ในโค้ดก่อน (คลิกไอคอนมุมขวาล่างเพื่อดูวิธีทำ)', 'info');
+                 return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const originalBtnText = submitBtn.innerHTML;
+            
+            // Loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> กำลังบันทึกข้อมูล...';
+
+            // Prepare Data
+            const payload = {
+                prefix: document.getElementById('prefix').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                position: document.getElementById('position').value,
+                school: document.getElementById('school').value,
+                network: document.getElementById('network').value,
+                remark: document.getElementById('remark').value,
+                fileBase64: base64Data,
+                fileName: fileName,
+                fileMimeType: mimeType
+            };
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8", // text/plain prevents CORS preflight issues with GAS
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    Swal.fire({
+                        title: 'ลงทะเบียนสำเร็จ!',
+                        text: 'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+                        icon: 'success',
+                        confirmButtonColor: '#ff1a8c'
+                    }).then(() => {
+                        document.getElementById('registrationForm').reset();
+                        preview.style.display = 'none';
+                        base64Data = null;
+                    });
+                } else {
+                    throw new Error(result.message || 'Unknown error occurred');
+                }
+            } catch (error) {
+                Swal.fire('เกิดข้อผิดพลาด!', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        });
+    </script>
+</body>
+</html>
