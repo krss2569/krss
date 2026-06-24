@@ -14,7 +14,7 @@
     <!-- นำเข้า PapaParse สำหรับอ่านไฟล์ CSV จาก Google Sheets -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
-    <!-- นำเข้า Chart.js สำหรับสร้างกราฟ -->
+    <!-- นำเข้า Chart.js สำหรับสร้างกราฟตำแหน่ง -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- นำเข้าฟอนต์ Sarabun เพื่อให้อ่านง่าย -->
@@ -23,6 +23,22 @@
     <style>
         body {
             font-family: 'Sarabun', sans-serif;
+        }
+        /* Custom scrollbar สำหรับตารางสรุปสหวิทยาเขต */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
@@ -74,26 +90,29 @@
             </div>
         </div>
 
-        <!-- Charts Section -->
+        <!-- Charts & Summary Table Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Position Chart -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <!-- Position Chart (Left) -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex flex-col">
                 <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                    <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                    <i data-lucide="pie-chart" class="w-5 h-5 text-blue-600"></i>
                     สัดส่วนตามตำแหน่ง
                 </h3>
-                <div class="relative h-[300px] w-full flex justify-center">
+                <div class="relative h-[300px] w-full flex justify-center items-center">
                     <canvas id="position-chart"></canvas>
                 </div>
             </div>
-            <!-- Campus Chart -->
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                    จำนวนตามสหวิทยาเขต
-                </h3>
-                <div class="relative h-[300px] w-full">
-                    <canvas id="campus-chart"></canvas>
+            
+            <!-- Campus Summary Table (Right - Replaced Bar Chart) -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i data-lucide="table" class="w-5 h-5 text-blue-600"></i>
+                        จำนวนแยกตามสหวิทยาเขต
+                    </h3>
+                    <div id="campus-table-container" class="max-h-[290px] overflow-y-auto custom-scrollbar">
+                        <!-- ตารางสหวิทยาเขตจะเรนเดอร์ผ่าน JavaScript ตรงนี้ -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -154,7 +173,7 @@
 
         <!-- Data Table -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto overflow-y-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
@@ -226,10 +245,10 @@
         const statTeachers = document.getElementById('stat-teachers');
         const showingCount = document.getElementById('showing-count');
         const totalCount = document.getElementById('total-count');
+        const campusTableContainer = document.getElementById('campus-table-container');
 
         // ตัวแปรสำหรับเก็บ Instance ของกราฟ
         let positionChartInstance = null;
-        let campusChartInstance = null;
 
         // สีมาตรฐานสำหรับกราฟ
         const chartColors = [
@@ -243,24 +262,24 @@
         ];
 
         // ----------------------------------------------------
-        // ฟังก์ชันอัปเดตกราฟ
+        // ฟังก์ชันอัปเดตกราฟ และเรนเดอร์ตารางข้อมูลสรุปสหวิทยาเขต
         // ----------------------------------------------------
-        function updateCharts(filteredData) {
-            // นับจำนวนตามตำแหน่ง
+        function updateVisualizations(filteredData) {
+            // 1. นับจำนวนผู้ลงทะเบียนตามตำแหน่ง
             const positionCounts = filteredData.reduce((acc, item) => {
                 const pos = item.position || 'ไม่ระบุ';
                 acc[pos] = (acc[pos] || 0) + 1;
                 return acc;
             }, {});
 
-            // นับจำนวนตามสหวิทยาเขต
+            // 2. นับจำนวนผู้ลงทะเบียนตามสหวิทยาเขต
             const campusCounts = filteredData.reduce((acc, item) => {
                 const campus = item.campus || 'ไม่ระบุ';
                 acc[campus] = (acc[campus] || 0) + 1;
                 return acc;
             }, {});
 
-            // 1. กราฟโดนัท (สัดส่วนตามตำแหน่ง)
+            // --- เรนเดอร์กราฟโดนัท (สัดส่วนตามตำแหน่ง) ---
             const posCtx = document.getElementById('position-chart').getContext('2d');
             if (positionChartInstance) {
                 positionChartInstance.destroy(); // ลบกราฟเก่าก่อนวาดใหม่
@@ -284,40 +303,47 @@
                 }
             });
 
-            // 2. กราฟแท่ง (จำนวนตามสหวิทยาเขต)
-            const campusCtx = document.getElementById('campus-chart').getContext('2d');
-            if (campusChartInstance) {
-                campusChartInstance.destroy(); // ลบกราฟเก่าก่อนวาดใหม่
+            // --- เรนเดอร์ตารางสหวิทยาเขต (สรุปตามรูปแบบรูปภาพตัวอย่าง) ---
+            const sortedCampuses = Object.entries(campusCounts).sort((a, b) => b[1] - a[1]); // เรียงจากมากไปน้อย
+
+            if (sortedCampuses.length === 0) {
+                campusTableContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 text-gray-500">
+                        <i data-lucide="map-pin-off" class="w-12 h-12 text-gray-300 mb-2"></i>
+                        <p class="text-sm">ไม่มีข้อมูลสหวิทยาเขต</p>
+                    </div>
+                `;
+            } else {
+                const tableRows = sortedCampuses.map(([campus, count], index) => {
+                    // ใช้การสลับสีแถว (Zebra Striping) คล้ายตัวอย่าง
+                    const rowBg = index % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+                    return `
+                        <tr class="${rowBg} hover:bg-slate-100 transition-colors">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-slate-900">${index + 1}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-700 font-medium">${campus}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-900 text-center font-bold">${count} คน</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                campusTableContainer.innerHTML = `
+                    <div class="overflow-hidden border border-gray-200 rounded-lg shadow-sm">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-[#1E3A8A] text-white">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider w-16">#</th>
+                                    <th scope="col" class="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider">สหวิทยาเขต</th>
+                                    <th scope="col" class="px-4 py-3.5 text-center text-xs font-bold uppercase tracking-wider w-28">จำนวนผู้ลงทะเบียน</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${tableRows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
             }
-
-            const campusLabels = Object.keys(campusCounts);
-            const campusData = Object.values(campusCounts);
-            // สร้างอาร์เรย์สีแบบวนลูปใช้สีจาก chartColors ตามจำนวนแท่งที่มีจริง
-            const campusBackgroundColors = campusLabels.map((_, index) => chartColors[index % chartColors.length]);
-
-            campusChartInstance = new Chart(campusCtx, {
-                type: 'bar',
-                data: {
-                    labels: campusLabels,
-                    datasets: [{
-                        label: 'จำนวนคน',
-                        data: campusData,
-                        backgroundColor: campusBackgroundColors,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Sarabun' } } },
-                        x: { ticks: { font: { family: 'Sarabun' } } }
-                    }
-                }
-            });
+            lucide.createIcons();
         }
 
         // ----------------------------------------------------
@@ -343,7 +369,7 @@
         }
 
         // ----------------------------------------------------
-        // ดึงข้อมูล Real-time (ปรับปรุงใหม่ให้เชื่อมต่อง่ายขึ้น)
+        // ดึงข้อมูล Real-time
         // ----------------------------------------------------
         function fetchSheetData() {
             tableBody.innerHTML = `
@@ -477,7 +503,7 @@
                                         <div>
                                             <strong class="text-slate-900">กดเชื่อมต่ออีกครั้ง:</strong>
                                             <p class="text-slate-600 mt-1.5">
-                                                เมื่อทำเสร็จแล้ว ให้รอสักครู่และกด <button onclick="fetchSheetData()" class="px-2.5 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-1">เชื่อมต่อใหม่ <i data-lucide="refresh-cw" class="w-3 h-3"></i></button> ข้อมูลจะแสดงทันที
+                                                เมื่อทำเสร็จแล้ว ให้รอสักครู่และกด <button onclick="fetchSheetData()" class="px-2.5 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors inline-flex items-center gap-1">เชื่อมต่อใหม่ <i data-lucide="refresh-cw" class="w-3 h-3"></i></button> เพื่อลองใหม่อีกครั้ง
                                             </p>
                                         </div>
                                     </div>
@@ -540,10 +566,10 @@
             showingCount.textContent = filteredData.length;
             totalCount.textContent = initialData.length;
 
-            // อัปเดตกราฟทั้งสองอันตามข้อมูลที่ถูกกรองแล้ว
-            updateCharts(filteredData);
+            // อัปเดตกราฟโดนัททางซ้าย และตารางสรุปสหวิทยาเขตทางขวาตามข้อมูลที่ถูกกรองแล้ว
+            updateVisualizations(filteredData);
 
-            // 3. แสดงผลลงตาราง
+            // 3. แสดงผลลงตารางหลักด้านล่าง
             if (filteredData.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
