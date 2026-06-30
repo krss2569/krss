@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบสำรวจแววความสามารถพิเศษ (Multiple Intelligences)</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for result visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; }
+        .radio-btn:checked + label {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #ffffff;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-gray-800 antialiased p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Login Section -->
+        <div id="login-section" class="max-w-md mx-auto mt-10 md:mt-20">
+            <div class="bg-white rounded-2xl shadow-lg p-8 border-t-8 border-blue-500">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">เข้าสู่ระบบ</h2>
+                    <p class="text-gray-500">ระบบแบบสำรวจแววความสามารถพิเศษ</p>
+                </div>
+                
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล หรือ รหัสนักเรียน</label>
+                        <input type="text" id="loginUsername" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="กรอกชื่อหรือรหัสของคุณ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
+                        <input type="password" id="loginPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="รหัสผ่านทดสอบคือ 1234">
+                    </div>
+                    
+                    <div id="loginError" class="hidden text-red-500 text-sm text-center font-medium bg-red-50 p-2 rounded">รหัสผ่านไม่ถูกต้อง (ลองใช้: 1234)</div>
+                    
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition transform hover:-translate-y-0.5 text-lg">
+                        เข้าสู่ระบบ
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header id="app-header" class="hidden bg-white rounded-2xl shadow-sm p-6 md:p-10 mb-6 border-t-8 border-blue-500 relative">
+            <!-- Top bar: User info & Logout -->
+            <div class="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-3">
+                <div class="text-sm text-gray-600 hidden md:block">
+                    <span id="displayUserName" class="font-bold text-blue-600"></span>
+                </div>
+                <button type="button" id="logoutBtn" class="text-sm bg-red-50 hover:bg-red-100 text-red-600 font-medium py-1.5 px-3 md:py-2 md:px-4 rounded-lg transition border border-red-200 flex items-center gap-1 shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span class="hidden md:inline">ออกจากระบบ</span>
+                </button>
+            </div>
+
+            <div class="text-center mt-8 md:mt-0">
+                <h1 class="text-2xl md:text-4xl font-bold text-gray-900 mb-3">แบบสำรวจแววความสามารถพิเศษ</h1>
+                <p class="text-gray-600 mb-2">อ้างอิงตามทฤษฎีพหุปัญญา (Multiple Intelligences) ของ Howard Gardner</p>
+                <p class="text-sm text-gray-500 bg-blue-50 inline-block px-4 py-2 rounded-full">ให้เลือกคำตอบที่ตรงกับตัวคุณมากที่สุด (1 = ไม่จริงเลย, 5 = จริงที่สุด)</p>
+            </div>
+        </header>
+
+        <!-- Main Form Area -->
+        <div id="survey-section" class="hidden">
+            <form id="surveyForm" class="space-y-6">
+                <!-- User Info -->
+                <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-semibold text-gray-800">ข้อมูลพื้นฐาน</h2>
+                        <span class="text-xs text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded">สามารถแก้ไขได้</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
+                            <input type="text" id="userName" name="userName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="ด.ช. / ด.ญ. / นาย / นางสาว">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ระดับชั้น / ห้อง <span class="text-red-500">*</span></label>
+                            <input type="text" id="userGrade" name="userGrade" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="เช่น ม.3/1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Questions Container -->
+                <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2 text-gray-800">ข้อคำถาม</h2>
+                    <div id="questionsContainer" class="space-y-8">
+                        <!-- Questions will be injected here by JS -->
+                    </div>
+                </div>
+
+                <!-- Error Message Container -->
+                <div id="errorMessage" class="hidden bg-red-100 text-red-700 p-4 rounded-lg border border-red-200 text-center font-medium">
+                    กรุณาตอบคำถามให้ครบทุกข้อครับ
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center pb-10">
+                    <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-10 rounded-full text-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 flex items-center justify-center w-full md:w-auto mx-auto gap-2">
+                        <span>ส่งแบบสำรวจและดูผลลัพธ์</span>
+                        <div id="loadingIcon" class="loading-spinner hidden"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section (Hidden by default) -->
+        <div id="result-section" class="hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-10 mb-6 text-center border-t-8 border-green-500">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">ผลการสำรวจของคุณ</h2>
+                <h3 id="resultName" class="text-xl text-gray-600 mb-6"></h3>
+                
+                <div class="bg-green-50 rounded-xl p-6 mb-8 inline-block shadow-inner w-full md:w-auto">
+                    <p class="text-gray-600 mb-1">ความสามารถที่โดดเด่นที่สุดของคุณคือ</p>
+                    <p id="topSkill" class="text-2xl md:text-3xl font-bold text-green-700"></p>
+                    <p id="topSkillDesc" class="text-sm text-gray-600 mt-2 max-w-md mx-auto"></p>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="w-full max-w-2xl mx-auto aspect-square md:aspect-[4/3] relative">
+                    <canvas id="radarChart"></canvas>
+                </div>
+
+                <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 text-left" id="scoreDetails">
+                    <!-- Score details injected here -->
+                </div>
+
+                <div class="mt-10 text-center">
+                    <button onclick="location.reload()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-full transition">
+                        ทำแบบสำรวจอีกครั้ง
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚠️ นำ URL จาก Google Apps Script มาใส่ที่นี่
+        // ==========================================
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwD5XK-dRUN-pBKH9YRtYATohna6dcxXsqrObhBTKEKsP9jOQlVKe6uD-j_O4ZiaEC2/exec'; 
+
+        // Questionnaire Data
+        const categories = {
+            'linguistic': { label: 'ด้านภาษา', color: '#ef4444', desc: 'มีความสามารถในการใช้ภาษา การพูด การเขียน การอ่าน และการเล่าเรื่อง' },
+            'logical': { label: 'ด้านตรรกะและคณิตศาสตร์', color: '#f97316', desc: 'มีความสามารถในการคิดวิเคราะห์ การคำนวณ และการแก้ปัญหาเชิงตรรกะ' },
+            'spatial': { label: 'ด้านมิติสัมพันธ์', color: '#eab308', desc: 'มีความสามารถในการรับรู้ทางสายตา พื้นที่ การวาดภาพ และจินตนาการเป็นภาพ' },
+            'bodily': { label: 'ด้านร่างกายและการเคลื่อนไหว', color: '#22c55e', desc: 'มีความสามารถในการควบคุมร่างกาย การเล่นกีฬา และการแสดงออกทางท่าทาง' },
+            'musical': { label: 'ด้านดนตรี', color: '#06b6d4', desc: 'มีความสามารถในการรับรู้จังหวะ ระดับเสียง และความซาบซึ้งในเสียงดนตรี' },
+            'interpersonal': { label: 'ด้านมนุษยสัมพันธ์', color: '#3b82f6', desc: 'มีความสามารถในการเข้าใจผู้อื่น ทำงานเป็นทีม และมีความเป็นผู้นำ' },
+            'intrapersonal': { label: 'ด้านการเข้าใจตนเอง', color: '#8b5cf6', desc: 'มีความเข้าใจในความรู้สึก เป้าหมายของตนเอง และรักความอิสระ' },
+            'naturalist': { label: 'ด้านธรรมชาติวิทยา', color: '#14b8a6', desc: 'มีความรักและสนใจในสิ่งแวดล้อม สัตว์ พืช และปรากฏการณ์ทางธรรมชาติ' }
+        };
+
+        const questionsData = [
+            { id: 1, cat: 'linguistic', text: 'ฉันชอบอ่านหนังสือ นิทาน หรือบทความต่างๆ เป็นประจำ' },
+            { id: 2, cat: 'linguistic', text: 'ฉันสามารถเล่าเรื่องราวต่างๆ ให้เพื่อนฟังได้อย่างสนุกสนานและเข้าใจง่าย' },
+            { id: 3, cat: 'linguistic', text: 'ฉันจดจำคำศัพท์ใหม่ๆ และชื่อสถานที่ต่างๆ ได้ดี' },
+            
+            { id: 4, cat: 'logical', text: 'ฉันชอบเรียนวิชาคณิตศาสตร์ และสนุกกับการคิดเลข' },
+            { id: 5, cat: 'logical', text: 'ฉันชอบเล่นเกมที่ต้องใช้การคิดวิเคราะห์ เช่น หมากรุก บอร์ดเกม หรือซูโดกุ' },
+            { id: 6, cat: 'logical', text: 'ฉันมักจะตั้งคำถามถึงเหตุผล และที่มาที่ไปของสิ่งต่างๆ เสมอ' },
+            
+            { id: 7, cat: 'spatial', text: 'ฉันชอบวาดรูป ระบายสี หรืองานศิลปะประดิษฐ์' },
+            { id: 8, cat: 'spatial', text: 'ฉันสามารถอ่านแผนที่และจดจำเส้นทางได้ดี' },
+            { id: 9, cat: 'spatial', text: 'เวลาหลับตา ฉันสามารถจินตนาการเห็นภาพสิ่งต่างๆ ได้ชัดเจน' },
+            
+            { id: 10, cat: 'bodily', text: 'ฉันชอบเล่นกีฬา หรือทำกิจกรรมที่ต้องออกแรง' },
+            { id: 11, cat: 'bodily', text: 'ฉันเรียนรู้ทักษะใหม่ๆ ผ่านการลงมือทำได้ดีกว่าการอ่านหรือฟัง' },
+            { id: 12, cat: 'bodily', text: 'ฉันชอบแสดงท่าทางประกอบเวลาพูดคุย หรือชอบการเต้นรำ' },
+            
+            { id: 13, cat: 'musical', text: 'ฉันชอบฟังเพลง และมักจะฮัมเพลงหรือเคาะจังหวะเวลาว่าง' },
+            { id: 14, cat: 'musical', text: 'ฉันสามารถจำเนื้อร้องและทำนองเพลงได้อย่างรวดเร็ว' },
+            { id: 15, cat: 'musical', text: 'ฉันแยกแยะเสียงเครื่องดนตรี หรือเสียงที่ผิดเพี้ยนได้ดี' },
+            
+            { id: 16, cat: 'interpersonal', text: 'ฉันมีเพื่อนเยอะ และเข้ากับคนแปลกหน้าได้ง่าย' },
+            { id: 17, cat: 'interpersonal', text: 'ฉันชอบทำงานกลุ่ม และมักได้รับเลือกให้เป็นผู้นำ' },
+            { id: 18, cat: 'interpersonal', text: 'ฉันเข้าใจความรู้สึกของเพื่อน และมักเป็นที่ปรึกษาให้คนอื่น' },
+            
+            { id: 19, cat: 'intrapersonal', text: 'ฉันรู้ว่าตัวเองชอบหรือไม่ชอบอะไร และมีเป้าหมายชัดเจน' },
+            { id: 20, cat: 'intrapersonal', text: 'ฉันชอบใช้เวลาอยู่คนเดียวเพื่อคิดทบทวนเรื่องราวต่างๆ' },
+            { id: 21, cat: 'intrapersonal', text: 'ฉันมีความมั่นใจและกล้าตัดสินใจด้วยตัวเอง' },
+            
+            { id: 22, cat: 'naturalist', text: 'ฉันชอบเลี้ยงสัตว์ หรือปลูกต้นไม้ดูแลสวน' },
+            { id: 23, cat: 'naturalist', text: 'ฉันชอบไปเที่ยวภูเขา ทะเล หรือสถานที่ท่องเที่ยวทางธรรมชาติ' },
+            { id: 24, cat: 'naturalist', text: 'ฉันสนใจเรียนรู้เกี่ยวกับสิ่งแวดล้อม ภาวะโลกร้อน และการอนุรักษ์' }
+        ];
+
+        // Shuffle questions slightly for better engagement, but let's keep it sequential for now for simplicity
+        
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            
+            questionsData.forEach((q, index) => {
+                const questionHTML = `
+                    <div class="bg-gray-50 p-4 md:p-5 rounded-xl border border-gray-100 hover:shadow-md transition">
+                        <p class="text-base md:text-lg font-medium text-gray-800 mb-4">${index + 1}. ${q.text}</p>
+                        <div class="flex justify-between md:justify-start gap-2 md:gap-4 w-full">
+                            ${[1, 2, 3, 4, 5].map(val => `
+                                <div class="flex-1 md:flex-none">
+                                    <input type="radio" id="q${q.id}_${val}" name="q${q.id}" value="${val}" class="hidden radio-btn">
+                                    <label for="q${q.id}_${val}" class="block w-full text-center py-2 md:px-6 md:py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 transition text-sm md:text-base font-medium text-gray-600">
+                                        ${val}
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 mt-2 md:hidden">
+                            <span>ไม่จริงเลย</span>
+                            <span>จริงที่สุด</span>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += questionHTML;
+            });
+        }
+
+        renderQuestions();
+
+        // Login System Logic
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorMsg = document.getElementById('loginError');
+
+            // ระบบจำลองการล็อกอิน (ใช้รหัส 1234 ในการทดสอบ)
+            // *ในระบบจริงสามารถดัดแปลงไปใช้ดึงข้อมูลจาก API หรือ Database ได้
+            if (password === '1234') {
+                // ซ่อนหน้าล็อกอิน
+                errorMsg.classList.add('hidden');
+                document.getElementById('login-section').classList.add('hidden');
+                
+                // แสดงหน้าแบบสำรวจ
+                document.getElementById('app-header').classList.remove('hidden');
+                document.getElementById('survey-section').classList.remove('hidden');
+                
+                // นำชื่อที่ล็อกอินไปเติมในฟอร์มและ Header
+                document.getElementById('userName').value = username;
+                document.getElementById('displayUserName').innerText = 'คุณ ' + username;
+                
+                // ซ่อนส่วนแสดงผลลัพธ์ (ถ้ามีจากการทำครั้งก่อน)
+                document.getElementById('result-section').classList.add('hidden');
+            } else {
+                // รหัสผ่านผิด
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        // Logout Logic
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            // แสดงหน้าล็อกอิน
+            document.getElementById('login-section').classList.remove('hidden');
+            
+            // ซ่อนหน้าอื่นๆ
+            document.getElementById('app-header').classList.add('hidden');
+            document.getElementById('survey-section').classList.add('hidden');
+            document.getElementById('result-section').classList.add('hidden');
+            
+            // เคลียร์ข้อมูลในฟอร์ม
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('surveyForm').reset();
+            
+            // เลื่อนกลับไปด้านบนสุด
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        document.getElementById('surveyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.classList.add('hidden');
+
+            // Validate all questions answered
+            let allAnswered = true;
+            let rawScores = {
+                'linguistic': 0, 'logical': 0, 'spatial': 0, 'bodily': 0,
+                'musical': 0, 'interpersonal': 0, 'intrapersonal': 0, 'naturalist': 0
+            };
+
+            for (let i = 0; i < questionsData.length; i++) {
+                const qId = questionsData[i].id;
+                const cat = questionsData[i].cat;
+                const selected = document.querySelector(`input[name="q${qId}"]:checked`);
+                
+                if (!selected) {
+                    allAnswered = false;
+                    break;
+                }
+                rawScores[cat] += parseInt(selected.value);
+            }
+
+            if (!allAnswered) {
+                errorMessage.classList.remove('hidden');
+                errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Prepare Data
+            const userName = document.getElementById('userName').value;
+            const userGrade = document.getElementById('userGrade').value;
+
+            // Find Top Skill
+            let topSkillCat = Object.keys(rawScores).reduce((a, b) => rawScores[a] > rawScores[b] ? a : b);
+            let topSkillLabel = categories[topSkillCat].label;
+
+            // UI Loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingIcon = document.getElementById('loadingIcon');
+            const btnText = submitBtn.querySelector('span');
+            
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75');
+            btnText.innerText = "กำลังประมวลผลและบันทึกข้อมูล...";
+            loadingIcon.classList.remove('hidden');
+
+            // Form data to send to Google Sheets
+            const formData = new FormData();
+            formData.append('name', userName);
+            formData.append('grade', userGrade);
+            formData.append('linguistic', rawScores.linguistic);
+            formData.append('logical', rawScores.logical);
+            formData.append('spatial', rawScores.spatial);
+            formData.append('bodily', rawScores.bodily);
+            formData.append('musical', rawScores.musical);
+            formData.append('interpersonal', rawScores.interpersonal);
+            formData.append('intrapersonal', rawScores.intrapersonal);
+            formData.append('naturalist', rawScores.naturalist);
+            formData.append('top_skill', topSkillLabel);
+
+            // Send to Google Apps Script
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Important for sending simple POST to GAS without preflight errors
+                body: formData
+            })
+            .then(() => {
+                // Since mode is no-cors, we assume success if no network error
+                showResults(userName, rawScores, topSkillCat);
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                // Even on error, show results to user so they don't lose their data
+                showResults(userName, rawScores, topSkillCat);
+                alert("มีปัญหาในการบันทึกข้อมูลลงระบบ แต่คุณสามารถดูผลลัพธ์ได้ด้านล่าง");
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75');
+                btnText.innerText = "ส่งแบบสำรวจและดูผลลัพธ์";
+                loadingIcon.classList.add('hidden');
+            });
+        });
+
+        function showResults(name, scores, topCat) {
+            document.getElementById('survey-section').classList.add('hidden');
+            const resultSection = document.getElementById('result-section');
+            resultSection.classList.remove('hidden');
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+
+            document.getElementById('resultName').innerText = `คุณ ${name}`;
+            document.getElementById('topSkill').innerText = categories[topCat].label;
+            document.getElementById('topSkillDesc').innerText = categories[topCat].desc;
+
+            // Prepare Chart Data
+            const labels = [];
+            const data = [];
+            const backgroundColors = [];
+            
+            const scoreDetails = document.getElementById('scoreDetails');
+            scoreDetails.innerHTML = '';
+
+            for (const [key, value] of Object.entries(scores)) {
+                labels.push(categories[key].label);
+                data.push(value); // Max 15 per category
+                backgroundColors.push(categories[key].color);
+
+                // Add to detailed breakdown
+                const percentage = Math.round((value / 15) * 100);
+                scoreDetails.innerHTML += `
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <div class="text-xs text-gray-500 mb-1">${categories[key].label}</div>
+                        <div class="text-lg font-bold text-gray-800">${value} <span class="text-sm font-normal text-gray-500">/ 15</span></div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="h-2 rounded-full" style="width: ${percentage}%; background-color: ${categories[key].color}"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Render Chart
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'คะแนนของคุณ',
+                        data: data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        pointBackgroundColor: backgroundColors,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: backgroundColors,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: {
+                                    family: "'Sarabun', sans-serif",
+                                    size: window.innerWidth < 768 ? 10 : 13
+                                },
+                                color: '#4b5563'
+                            },
+                            min: 0,
+                            max: 15,
+                            ticks: {
+                                stepSize: 3,
+                                display: false // Hide numbers on web
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
